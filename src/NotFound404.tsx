@@ -2,7 +2,7 @@ import { Link } from "react-router";
 
 const NotFound404 = () => {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 text-center p-6">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-linear-to-br from-blue-50 to-blue-100 text-center p-6">
       <div className="bg-white rounded-2xl shadow-xl p-10 max-w-md animate-fade-in">
         <h1 className="text-6xl font-extrabold text-blue-600 mb-4">404</h1>
         <h2 className="text-2xl font-semibold text-gray-800 mb-2">
