@@ -1,14 +1,16 @@
 //import Login from './pages/Login/Login'
-
-import AppRouter from './AppRouter'
+import { GlobalProvider } from "./state";
+import AppRouter from './router/AppRouter'
 
 function App() {
 
 
   return (
-    <>
-        <AppRouter />
-    </>
+
+    <GlobalProvider>
+      <AppRouter />
+    </GlobalProvider>
+
   )
 }
 
