@@ -20,7 +20,7 @@ const SideBarNavigator = ({ showAll,menuOptions, footerOptions }: sideBarNavProp
     return (
       <nav className="flex flex-col h-screen w-[200px] bg-white border-r border-gray-200 p-4">
         {/* User Info */}
-        <div className="flex items-center gap-3 mb-8 p-2">
+        <Link to="/perfil" className="flex items-center gap-3 mb-8 p-2">
           <div className="w-9 h-9 bg-orange-200 rounded-full flex items-center justify-center text-sm font-bold text-orange-700">
             {user?.nombre?.charAt(0) || "U"}
           </div>
@@ -28,7 +28,7 @@ const SideBarNavigator = ({ showAll,menuOptions, footerOptions }: sideBarNavProp
             <p className="text-gray-900 font-bold text-sm">{user?.nombre || "Usuario"}</p>
             <p className="text-gray-500 text-xs">{user?.email || "email@ejemplo.com"}</p>
           </div>
-        </div>
+        </Link>
 
         {/* Main Menu */}
         <div className="flex-1 space-y-1">

@@ -17,6 +17,11 @@ export {default as LandingPage} from "../shared/pages/inicioPage/LandingPage";
 export { default as NotFound404 } from "../shared/pages/NotFound404";
 export { SpinnerCircule } from "../shared/ui/Spinner";
 
+//Vistas de comunes
+export {default as BusquedaGlobal} from "../shared/pages/common/BusquedaGlobal";
+export {default as CentroNotificaciones} from "../shared/pages/common/CentroNotificaciones";
+export {default as PerfilUsuario} from "../shared/pages/common/PerfilUsuario";
+
 // Router
 export { ProtectedRoute } from "./ProtectedRoute";
 
@@ -70,3 +75,6 @@ export const AnalisisTiemposPage = lazy(() => import("../modules/auditor/pages/A
 export const AuditorCumplimientoPage = lazy(() => import("../modules/auditor/pages/AuditorCumplimientoPage"));
 export const ReportesEntidadPage = lazy(() => import("../modules/auditor/pages/ReportesEntidadPage"));
 export const ReporteGestorPage = lazy(() => import("../modules/auditor/pages/ReportesGestorPage"));
+
+
+

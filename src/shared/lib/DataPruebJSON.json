@@ -1,324 +1,275 @@
 {
-  "roles": [
-    {
-      "id_rol": "550e8400-e29b-41d4-a716-446655440001",
-      "nombre": "ADMINISTRADOR_SISTEMA",
-      "descripcion": "Control total del sistema, gestión de usuarios y configuraciones"
-    },
-    {
-      "id_rol": "550e8400-e29b-41d4-a716-446655440002",
-      "nombre": "ADMINISTRADOR_ASIGNACIONES",
-      "descripcion": "Gestiona recepción, clasificación y envío final de correos"
-    },
-    {
-      "id_rol": "550e8400-e29b-41d4-a716-446655440003",
-      "nombre": "GESTOR",
-      "descripcion": "Responsable de redactar respuestas y gestionar el workflow completo"
-    },
-    {
-      "id_rol": "550e8400-e29b-41d4-a716-446655440004",
-      "nombre": "REVISOR_JURIDICO",
-      "descripcion": "Valida y corrige contenido legal (trabaja desde GLPI)"
-    },
-    {
-      "id_rol": "550e8400-e29b-41d4-a716-446655440005",
-      "nombre": "APROBADOR",
-      "descripcion": "Da visto bueno final para envío (trabaja desde Drive)"
-    },
-    {
-      "id_rol": "550e8400-e29b-41d4-a716-446655440006",
-      "nombre": "ROL_SEGUIMIENTO",
-      "descripcion": "Monitorea métricas y genera reportes sin modificar casos"
-    },
-    {
-      "id_rol": "550e8400-e29b-41d4-a716-446655440007",
-      "nombre": "AUDITOR",
-      "descripcion": "Realiza auditorías de cumplimiento de procedimientos"
-    }
-  ],
-
   "usuarios": [
     {
-      "id_usuario": "650e8400-e29b-41d4-a716-446655440001",
-      "nombre": "Pepe Suarez",
-      "correo": "admin@llanogas.com",
+      "id": 1,
+      "nombres": "Ana",
+      "apellidos": "García",
+      "numeroCelular": "3001234567",
+      "correo": "ana.garcia@entidad1.com",
+      "password": "password123",
+      "activo": true,
+      "fechaCreacion": "2024-01-15"
+    },
+    {
+      "id": 2,
+      "nombres": "Luis",
+      "apellidos": "Martínez",
+      "numeroCelular": "3109876543",
+      "correo": "luis.martinez@entidad2.com",
+      "password": "securepass",
+      "activo": true,
+      "fechaCreacion": "2024-02-20"
+    },
+    {
+      "id": 3,
+      "nombres": "Carlos",
+      "apellidos": "Rodríguez",
+      "numeroCelular": "3205556677",
+      "correo": "admin@entidad1.com",
       "password": "admin123",
       "activo": true,
-      "fecha_creacion": "2024-01-15T08:30:00Z"
+      "fechaCreacion": "2024-01-10"
     },
     {
-      "id_usuario": "650e8400-e29b-41d4-a716-446655440002",
-      "nombre": "Manuel Gomez",
-      "correo": "manuegomez@llanogas.com",
-      "password": "manuel123",
+      "id": 4,
+      "nombres": "María",
+      "apellidos": "López",
+      "numeroCelular": "3154443322",
+      "correo": "maria.lopez@entidad1.com",
+      "password": "maria2024",
       "activo": true,
-      "fecha_creacion": "2024-02-10T09:15:00Z"
+      "fechaCreacion": "2024-03-05"
     },
     {
-      "id_usuario": "650e8400-e29b-41d4-a716-446655440003",
-      "nombre": "Lina Perez",
-      "correo": "linaperez@llanogas.com",
-      "password": "lina123",
-      "activo": false,
-      "fecha_creacion": "2024-01-20T10:00:00Z"
-    },
-    {
-      "id_usuario": "650e8400-e29b-41d4-a716-446655440004",
-      "nombre": "Daniel Montero",
-      "correo": "dmontero@llanogas.com",
-      "password": "daniel123",
+      "id": 5,
+      "nombres": "Pedro",
+      "apellidos": "Sánchez",
+      "numeroCelular": "3189998888",
+      "correo": "pedro.sanchez@entidad2.com",
+      "password": "pedro456",
       "activo": true,
-      "fecha_creacion": "2024-03-05T11:30:00Z"
+      "fechaCreacion": "2024-02-15"
     },
     {
-      "id_usuario": "650e8400-e29b-41d4-a716-446655440005",
-      "nombre": "Carolina Ramirez",
-      "correo": "cramirez@llanogas.com",
-      "password": "carolina123",
+      "id": 6,
+      "nombres": "Laura",
+      "apellidos": "Fernández",
+      "numeroCelular": "3177776666",
+      "correo": "laura.fernandez@entidad1.com",
+      "password": "laura789",
       "activo": true,
-      "fecha_creacion": "2024-03-15T14:00:00Z"
+      "fechaCreacion": "2024-01-20"
+    },
+    {
+      "id": 7,
+      "nombres": "Javier",
+      "apellidos": "Gómez",
+      "numeroCelular": "3166665555",
+      "correo": "auditor@entidad1.com",
+      "password": "auditor2024",
+      "activo": true,
+      "fechaCreacion": "2024-02-01"
     }
   ],
-
-  "usuario_rol": [
+  "entidades": [
     {
-      "id_usuario": "650e8400-e29b-41d4-a716-446655440001",
-      "id_rol": "550e8400-e29b-41d4-a716-446655440001"
+      "id": 1,
+      "nombreEntidad": "Entidad Uno",
+      "dominioCorreo": "entidad1.com"
     },
     {
-      "id_usuario": "650e8400-e29b-41d4-a716-446655440002",
-      "id_rol": "550e8400-e29b-41d4-a716-446655440002"
-    },
-    {
-      "id_usuario": "650e8400-e29b-41d4-a716-446655440003",
-      "id_rol": "550e8400-e29b-41d4-a716-446655440003"
-    },
-    {
-      "id_usuario": "650e8400-e29b-41d4-a716-446655440004",
-      "id_rol": "550e8400-e29b-41d4-a716-446655440003"
-    },
-    {
-      "id_usuario": "650e8400-e29b-41d4-a716-446655440005",
-      "id_rol": "550e8400-e29b-41d4-a716-446655440004"
+      "id": 2,
+      "nombreEntidad": "Entidad Dos",
+      "dominioCorreo": "entidad2.com"
     }
   ],
-
+  "dependencias": [
+    {
+      "id": 1,
+      "nombreDependencia": "Recursos Humanos",
+      "correoDependencia": "rh@entidad1.com",
+      "entidadId": 1
+    },
+    {
+      "id": 2,
+      "nombreDependencia": "Soporte Técnico",
+      "correoDependencia": "soporte@entidad2.com",
+      "entidadId": 2
+    },
+    {
+      "id": 3,
+      "nombreDependencia": "Administración",
+      "correoDependencia": "admin@entidad1.com",
+      "entidadId": 1
+    },
+    {
+      "id": 4,
+      "nombreDependencia": "Atención al Ciudadano",
+      "correoDependencia": "atencion@entidad1.com",
+      "entidadId": 1
+    },
+    {
+      "id": 5,
+      "nombreDependencia": "Tecnología",
+      "correoDependencia": "tecnologia@entidad2.com",
+      "entidadId": 2
+    }
+  ],
+  "roles": [
+    {
+      "id": 1,
+      "nombreRol": "Integrador"
+    },
+    {
+      "id": 2,
+      "nombreRol": "GESTOR"
+    },
+    {
+      "id": 3,
+      "nombreRol": "REVISOR"
+    },
+    {
+      "id": 4,
+      "nombreRol": "APROBADOR"
+    },
+    {
+      "id": 5,
+      "nombreRol": "ADMINISTRADOR_SISTEMA"
+    },
+    {
+      "id": 6,
+      "nombreRol": "AUDITOR"
+    }
+  ],
+  "tipoSolicitud": [
+    {
+      "id": 1,
+      "nombre": "PQR"
+    },
+    {
+      "id": 2,
+      "nombre": "Solicitud de Información"
+    },
+    {
+      "id": 3,
+      "nombre": "Queja"
+    },
+    {
+      "id": 4,
+      "nombre": "Reclamo"
+    },
+    {
+      "id": 5,
+      "nombre": "Sugerencia"
+    }
+  ],
   "correos": [
     {
-      "id_correo": "750e8400-e29b-41d4-a716-446655440001",
-      "remitente": "cliente1@empresa.com",
-      "asunto": "Solicitud de información sobre servicio de gas",
-      "cuerpo": "Buenos días, quisiera conocer los requisitos para solicitar el servicio de gas domiciliario en mi residencia ubicada en...",
-      "fecha_recepcion": "2024-11-10T08:45:00Z",
-      "estado": "EN_PROCESO",
-      "prioridad": "MEDIA",
-      "id_responsable": "650e8400-e29b-41d4-a716-446655440002"
+      "idProcess": "550e8400-e29b-41d4-a716-446655440000",
+      "asunto": "Consulta sobre trámite",
+      "cuerpoTexto": "Buen día, necesito información sobre el estado de mi trámite.",
+      "estado": "PENDIENTE",
+      "fechaRecepcion": "2024-10-01",
+      "fechaRespuesta": null,
+      "plazoRespuestaEnDías": 5,
+      "radicadoEntrada": "RE-2024-001",
+      "radicadoSalida": null,
+      "dependencialId": 1,
+      "tipoSolicitudId": 2
     },
     {
-      "id_correo": "750e8400-e29b-41d4-a716-446655440002",
-      "remitente": "proveedor@suministros.com",
-      "asunto": "Cotización materiales mes de noviembre",
-      "cuerpo": "Adjunto cotización solicitada para los materiales requeridos. Validez de la oferta: 30 días...",
-      "fecha_recepcion": "2024-11-12T10:20:00Z",
-      "estado": "REVISION_JURIDICA",
-      "prioridad": "ALTA",
-      "id_responsable": "650e8400-e29b-41d4-a716-446655440004"
+      "idProcess": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+      "asunto": "Queja por demora",
+      "cuerpoTexto": "El proceso ha tomado más tiempo del indicado.",
+      "estado": "RESPONDIDO",
+      "fechaRecepcion": "2024-09-28",
+      "fechaRespuesta": "2024-09-30",
+      "plazoRespuestaEnDías": 3,
+      "radicadoEntrada": "RE-2024-002",
+      "radicadoSalida": "RS-2024-001",
+      "dependencialId": 2,
+      "tipoSolicitudId": 1
     },
     {
-      "id_correo": "750e8400-e29b-41d4-a716-446655440003",
-      "remitente": "alcaldia@villavicencio.gov.co",
-      "asunto": "Requerimiento certificación cumplimiento normativo",
-      "cuerpo": "De acuerdo con la normativa vigente, solicitamos certificación de cumplimiento de las normas ambientales...",
-      "fecha_recepcion": "2024-11-13T14:15:00Z",
-      "estado": "PENDIENTE_ASIGNACION",
-      "prioridad": "URGENTE",
-      "id_responsable": null
+      "idProcess": "123e4567-e89b-12d3-a456-426614174000",
+      "asunto": "Solicitud de documentos",
+      "cuerpoTexto": "Requiero copia de mis documentos para trámite legal.",
+      "estado": "PENDIENTE",
+      "fechaRecepcion": "2024-10-05",
+      "fechaRespuesta": null,
+      "plazoRespuestaEnDías": 7,
+      "radicadoEntrada": "RE-2024-003",
+      "radicadoSalida": null,
+      "dependencialId": 3,
+      "tipoSolicitudId": 2
+    },
+    {
+      "idProcess": "789a0123-b456-78c9-d012-e34567890123",
+      "asunto": "Reclamo por mal servicio",
+      "cuerpoTexto": "El servicio recibido no cumplió con lo ofrecido.",
+      "estado": "VENCIDO",
+      "fechaRecepcion": "2024-09-20",
+      "fechaRespuesta": null,
+      "plazoRespuestaEnDías": 5,
+      "radicadoEntrada": "RE-2024-004",
+      "radicadoSalida": null,
+      "dependencialId": 4,
+      "tipoSolicitudId": 3
+    },
+    {
+      "idProcess": "456f7890-a123-45b6-c789-d01234567890",
+      "asunto": "Sugerencia de mejora",
+      "cuerpoTexto": "Sugiero implementar sistema de citas en línea.",
+      "estado": "RESPONDIDO",
+      "fechaRecepcion": "2024-09-25",
+      "fechaRespuesta": "2024-09-28",
+      "plazoRespuestaEnDías": 10,
+      "radicadoEntrada": "RE-2024-005",
+      "radicadoSalida": "RS-2024-002",
+      "dependencialId": 5,
+      "tipoSolicitudId": 5
     }
   ],
-
-  "adjuntos": [
+  "flujoCorreos": [
     {
-      "id_adjunto": "850e8400-e29b-41d4-a716-446655440001",
-      "nombre_archivo": "documento_identidad.pdf",
-      "tipo": "application/pdf",
-      "tamaño": 245632,
-      "ruta": "/storage/correos/2024/11/documento_identidad.pdf",
-      "id_correo": "750e8400-e29b-41d4-a716-446655440001"
+      "id": 1,
+      "correold": "550e8400-e29b-41d4-a716-446655440000",
+      "usuarioId": 1,
+      "etapa": "GESTION",
+      "fechaAsignacion": "2024-10-01",
+      "fechaFinalizacion": null
     },
     {
-      "id_adjunto": "850e8400-e29b-41d4-a716-446655440002",
-      "nombre_archivo": "cotizacion_noviembre.xlsx",
-      "tipo": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "tamaño": 89456,
-      "ruta": "/storage/correos/2024/11/cotizacion_noviembre.xlsx",
-      "id_correo": "750e8400-e29b-41d4-a716-446655440002"
+      "id": 2,
+      "correold": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+      "usuarioId": 2,
+      "etapa": "APROBACION",
+      "fechaAsignacion": "2024-09-29",
+      "fechaFinalizacion": "2024-09-30"
     },
     {
-      "id_adjunto": "850e8400-e29b-41d4-a716-446655440003",
-      "nombre_archivo": "oficio_alcaldia_2024.pdf",
-      "tipo": "application/pdf",
-      "tamaño": 512000,
-      "ruta": "/storage/correos/2024/11/oficio_alcaldia_2024.pdf",
-      "id_correo": "750e8400-e29b-41d4-a716-446655440003"
+      "id": 3,
+      "correold": "123e4567-e89b-12d3-a456-426614174000",
+      "usuarioId": 4,
+      "etapa": "REVISION",
+      "fechaAsignacion": "2024-10-05",
+      "fechaFinalizacion": null
+    },
+    {
+      "id": 4,
+      "correold": "789a0123-b456-78c9-d012-e34567890123",
+      "usuarioId": 5,
+      "etapa": "GESTION",
+      "fechaAsignacion": "2024-09-20",
+      "fechaFinalizacion": null
+    },
+    {
+      "id": 5,
+      "correold": "456f7890-a123-45b6-c789-d01234567890",
+      "usuarioId": 6,
+      "etapa": "APROBACION",
+      "fechaAsignacion": "2024-09-25",
+      "fechaFinalizacion": "2024-09-28"
     }
-  ],
-
-  "solicitudes_glpi": [
-    {
-      "id_glpi": "950e8400-e29b-41d4-a716-446655440001",
-      "estado": "REVISION_JURIDICA",
-      "fecha_creacion": "2024-11-12T11:00:00Z",
-      "comentarios": "Solicitud creada para revisión legal del contrato con proveedor",
-      "id_correo": "750e8400-e29b-41d4-a716-446655440002"
-    },
-    {
-      "id_glpi": "950e8400-e29b-41d4-a716-446655440002",
-      "estado": "APROBADO",
-      "fecha_creacion": "2024-11-05T09:30:00Z",
-      "comentarios": "Respuesta aprobada por el área jurídica. Lista para envío.",
-      "id_correo": "750e8400-e29b-41d4-a716-446655440001"
-    }
-  ],
-
-  "radicados": [
-    {
-      "id_radicado": "RAD-2024-001",
-      "numero": "LLANOGAS-2024-001234",
-      "sistema_origen": "SISTEMA_INTERNO",
-      "fecha_creacion": "2024-11-10T08:50:00Z",
-      "id_correo": "750e8400-e29b-41d4-a716-446655440001"
-    },
-    {
-      "id_radicado": "RAD-2024-002",
-      "numero": "LLANOGAS-2024-001235",
-      "sistema_origen": "GLPI",
-      "fecha_creacion": "2024-11-12T10:25:00Z",
-      "id_correo": "750e8400-e29b-41d4-a716-446655440002"
-    },
-    {
-      "id_radicado": "RAD-2024-003",
-      "numero": "LLANOGAS-2024-001236",
-      "sistema_origen": "SISTEMA_INTERNO",
-      "fecha_creacion": "2024-11-13T14:20:00Z",
-      "id_correo": "750e8400-e29b-41d4-a716-446655440003"
-    }
-  ],
-
-  "flujos_trabajo": [
-    {
-      "id_flujo": "FLU-2024-001",
-      "paso_actual": "REDACCION_RESPUESTA",
-      "fecha_inicio": "2024-11-10T09:00:00Z",
-      "fecha_vencimiento": "2024-11-17T17:00:00Z",
-      "id_correo": "750e8400-e29b-41d4-a716-446655440001"
-    },
-    {
-      "id_flujo": "FLU-2024-002",
-      "paso_actual": "REVISION_JURIDICA",
-      "fecha_inicio": "2024-11-12T11:00:00Z",
-      "fecha_vencimiento": "2024-11-19T17:00:00Z",
-      "id_correo": "750e8400-e29b-41d4-a716-446655440002"
-    },
-    {
-      "id_flujo": "FLU-2024-003",
-      "paso_actual": "RECEPCION",
-      "fecha_inicio": "2024-11-13T14:20:00Z",
-      "fecha_vencimiento": "2024-11-20T17:00:00Z",
-      "id_correo": "750e8400-e29b-41d4-a716-446655440003"
-    }
-  ],
-
-  "tareas_flujo": [
-    {
-      "id_tarea": "TAR-2024-001",
-      "paso": "RECEPCION",
-      "asignado_a": "650e8400-e29b-41d4-a716-446655440002",
-      "fecha_inicio": "2024-11-10T09:00:00Z",
-      "fecha_fin": "2024-11-10T09:30:00Z",
-      "id_flujo": "FLU-2024-001"
-    },
-    {
-      "id_tarea": "TAR-2024-002",
-      "paso": "REDACCION_RESPUESTA",
-      "asignado_a": "650e8400-e29b-41d4-a716-446655440004",
-      "fecha_inicio": "2024-11-10T10:00:00Z",
-      "fecha_fin": null,
-      "id_flujo": "FLU-2024-001"
-    },
-    {
-      "id_tarea": "TAR-2024-003",
-      "paso": "REVISION_JURIDICA",
-      "asignado_a": "650e8400-e29b-41d4-a716-446655440005",
-      "fecha_inicio": "2024-11-12T11:00:00Z",
-      "fecha_fin": null,
-      "id_flujo": "FLU-2024-002"
-    }
-  ],
-
-  "auditorias": [
-    {
-      "id_auditoria": "AUD-2024-001",
-      "id_usuario": "650e8400-e29b-41d4-a716-446655440001",
-      "accion": "CREACION_USUARIO",
-      "fecha": "2024-11-01T08:00:00Z",
-      "detalles": "Usuario Carolina Ramirez creado con rol de Revisor Jurídico"
-    },
-    {
-      "id_auditoria": "AUD-2024-002",
-      "id_usuario": "650e8400-e29b-41d4-a716-446655440002",
-      "accion": "ASIGNACION_CORREO",
-      "fecha": "2024-11-10T09:00:00Z",
-      "detalles": "Correo 750e8400-e29b-41d4-a716-446655440001 asignado a Daniel Montero"
-    },
-    {
-      "id_auditoria": "AUD-2024-003",
-      "id_usuario": "650e8400-e29b-41d4-a716-446655440004",
-      "accion": "CAMBIO_ESTADO_CORREO",
-      "fecha": "2024-11-12T11:00:00Z",
-      "detalles": "Estado del correo 750e8400-e29b-41d4-a716-446655440002 cambiado a REVISION_JURIDICA"
-    },
-    {
-      "id_auditoria": "AUD-2024-004",
-      "id_usuario": "650e8400-e29b-41d4-a716-446655440001",
-      "accion": "DESACTIVACION_USUARIO",
-      "fecha": "2024-11-08T16:30:00Z",
-      "detalles": "Usuario Lina Perez desactivado por finalización de contrato"
-    }
-  ],
-
-  "estados_correo": [
-    "PENDIENTE_ASIGNACION",
-    "EN_PROCESO",
-    "REVISION_JURIDICA",
-    "PENDIENTE_APROBACION",
-    "APROBADO",
-    "ENVIADO",
-    "CERRADO",
-    "RECHAZADO"
-  ],
-
-  "prioridades": [
-    "BAJA",
-    "MEDIA",
-    "ALTA",
-    "URGENTE"
-  ],
-
-  "sistemas_origen": [
-    "SISTEMA_INTERNO",
-    "GLPI",
-    "CORREO_ELECTRONICO",
-    "VENTANILLA_UNICA"
-  ],
-
-  "pasos_workflow": [
-    "RECEPCION",
-    "CLASIFICACION",
-    "ASIGNACION",
-    "REDACCION_RESPUESTA",
-    "REVISION_JURIDICA",
-    "APROBACION",
-    "ENVIO",
-    "ARCHIVO"
   ]
 }

@@ -48,6 +48,9 @@ import {
   ReportesEntidadPage,
   ReporteGestorPage,
   AuditorLayout,
+  BusquedaGlobal,
+  CentroNotificaciones,
+  PerfilUsuario,
 } from "./main";
 
 const AppRouter = () => {
@@ -63,6 +66,10 @@ const AppRouter = () => {
           <Route path="/auth/reset-password" element={<ResetPasswordForm />} />
         </Route>
         
+        {/*Rutas comunes */}
+        <Route path="/busqueda" element={<BusquedaGlobal />} />
+        <Route path="/notificaciones" element={<CentroNotificaciones />} />
+        <Route path="/perfil" element={<PerfilUsuario />} />
 
         {/* Rutas protegidas */}
         {/* Rutas para el layout de seguimiento de correos*/}
@@ -85,7 +92,7 @@ const AppRouter = () => {
         <Route
           path="/integrador"
           element={
-            <ProtectedRoute roles={["ADMINISTRADOR_SISTEMA", "manager"]}>
+            <ProtectedRoute roles={["ADMINISTRADOR_SISTEMA", "INTEGRADOR"]}>
               <Suspense fallback={<SpinnerCircule />}>
                 <IntegradorLayout />
               </Suspense>
@@ -122,7 +129,7 @@ const AppRouter = () => {
         <Route
           path="/gestor"
           element={
-            <ProtectedRoute roles={["ADMINISTRADOR_SISTEMA", "manager"]}>
+            <ProtectedRoute roles={["ADMINISTRADOR_SISTEMA", "GESTOR"]}>
               <Suspense fallback={<SpinnerCircule />}>
                 <GestorLayout />
               </Suspense>
@@ -140,7 +147,7 @@ const AppRouter = () => {
         <Route
           path="/revisor"
           element={
-            <ProtectedRoute roles={["ADMINISTRADOR_SISTEMA", "manager"]}>
+            <ProtectedRoute roles={["ADMINISTRADOR_SISTEMA", "REVISOR"]}>
               <Suspense fallback={<SpinnerCircule />}>
                 <RevisorLayout />
               </Suspense>
@@ -157,7 +164,7 @@ const AppRouter = () => {
         <Route
           path="/aprobador"
           element={
-            <ProtectedRoute roles={["ADMINISTRADOR_SISTEMA", "manager"]}>
+            <ProtectedRoute roles={["ADMINISTRADOR_SISTEMA", "APROBADOR"]}>
               <Suspense fallback={<SpinnerCircule />}>
                 <AprobadorLayout />
               </Suspense>
@@ -174,7 +181,7 @@ const AppRouter = () => {
         <Route
           path="/auditor"
           element={
-            <ProtectedRoute roles={["ADMINISTRADOR_SISTEMA", "manager"]}>
+            <ProtectedRoute roles={["ADMINISTRADOR_SISTEMA", "AUDITOR"]}>
               <Suspense fallback={<SpinnerCircule />}>
                 <AuditorLayout />
               </Suspense>

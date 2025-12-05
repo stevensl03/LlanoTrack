@@ -1,4 +1,5 @@
 import { useApp } from "../../../state/AppContext";
+import { Link } from "react-router";
 
 const HeaderShowNavigator = ({ showAll, setShowAll }: { 
   showAll: boolean; 
@@ -22,12 +23,12 @@ const HeaderShowNavigator = ({ showAll, setShowAll }: {
 
         {/* Right side */}
         <div className="flex items-center gap-3">
-          <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-full">
+          <Link  className="p-2 text-gray-600 hover:bg-gray-100 rounded-full" to="/notificaciones">
             🔔
-          </button>
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-md font-medium">
-            Nuevo Email
-          </button>
+          </Link>
+          <Link  className="p-2 text-gray-600 hover:bg-gray-100 rounded-full" to="/busqueda">
+            🔍
+          </Link>
         </div>
       </div>
     </header>
