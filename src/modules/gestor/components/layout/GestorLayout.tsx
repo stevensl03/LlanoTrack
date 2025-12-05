@@ -10,17 +10,19 @@ type AppContextType = {
     toggleSidebar: () => void;
 }
 const menuOptions = [
-    { id: "inbox", name: "Correos", path: "/integrador/inbox", icon: "📧" },
-    { id: "history", name: "Historial", path: "/integrador/history", icon: "📜" },
+    { id: "dashboard", name: "Panel", path: "/gestor/dashboard", icon: "📧" },
+    { id: "emailDetail", name: "Detalles de Email", path: "/gestor/emailDetail", icon: "📧" },
+    { id: "templates", name: "Plantillas", path: "/gestor/templates", icon: "📧" },
+    { id: "workflowTracking", name: "Seguimiento de Flujo", path: "/gestor/workflowTracking", icon: "📧" },
 ]
 const footerOptions = [
-    { id: "help", name: "Ayuda", path: "/integrador", icon: "❓" },
-    { id: "logout", name: "Cerrar Sesión", path: "/integrador/logout", icon: "🚪" }
+    { id: "help", name: "Ayuda", path: "/gestor", icon: "❓" },
+    { id: "logout", name: "Cerrar Sesión", path: "/gestor/logout", icon: "🚪" }
 ]
 
 
 
-const IntegradorLayout = (): JSX.Element => {
+const GestorLayout = (): JSX.Element => {
     const { sidebarOpen, toggleSidebar }: AppContextType = useApp();
     return (
         <div className={`${sidebarOpen ? "grid grid-cols-1" : "grid grid-cols-[200px_1fr]"} gap-0 h-screen`}>
@@ -37,4 +39,4 @@ const IntegradorLayout = (): JSX.Element => {
 }
 
 
-export default IntegradorLayout;
+export default GestorLayout;

@@ -10,17 +10,18 @@ type AppContextType = {
     toggleSidebar: () => void;
 }
 const menuOptions = [
-    { id: "inbox", name: "Correos", path: "/integrador/inbox", icon: "📧" },
-    { id: "history", name: "Historial", path: "/integrador/history", icon: "📜" },
+    { id: "dashboard", name: "Panel", path: "/aprobador/dashboard", icon: "📧" },
+    { id: "history", name: "Historial", path: "/aprobador/history", icon: "📜" },
+    { id: "detail", name: "Detalle", path: "/aprobador/detail/:id", icon: "🔍"}
 ]
 const footerOptions = [
-    { id: "help", name: "Ayuda", path: "/integrador", icon: "❓" },
-    { id: "logout", name: "Cerrar Sesión", path: "/integrador/logout", icon: "🚪" }
+    { id: "help", name: "Ayuda", path: "/aprobador", icon: "❓" },
+    { id: "logout", name: "Cerrar Sesión", path: "/aprobador/logout", icon: "🚪" }
 ]
 
 
 
-const IntegradorLayout = (): JSX.Element => {
+const AprobadorLayout = (): JSX.Element => {
     const { sidebarOpen, toggleSidebar }: AppContextType = useApp();
     return (
         <div className={`${sidebarOpen ? "grid grid-cols-1" : "grid grid-cols-[200px_1fr]"} gap-0 h-screen`}>
@@ -37,4 +38,4 @@ const IntegradorLayout = (): JSX.Element => {
 }
 
 
-export default IntegradorLayout;
+export default AprobadorLayout;

@@ -1,7 +1,7 @@
 import { Outlet } from "react-router";
 import { useApp } from "../../../state/AppContext";
-import SideBarNavigator from "../SideBarNavigator/SideBarNavigator";
-import HeaderShowNavigator from "../SideBarNavigator/HeaderShowNavigator";
+import SideBarNavigator from "../../../shared/pages/SideBarNavigator/SideBarNavigator";
+import HeaderShowNavigator from "../../../shared/pages/SideBarNavigator/HeaderShowNavigator";
 
 const TrackingLayout = () => {
   const { sidebarOpen, toggleSidebar } = useApp();

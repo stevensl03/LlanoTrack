@@ -1,9 +1,9 @@
 import type { JSX } from "react"
 import { Outlet } from "react-router"
 
-import HeaderShowNavigator from "../../../../tracking/components/SideBarNavigator/HeaderShowNavigator";
+import HeaderShowNavigator from "../../../../shared/pages/SideBarNavigator/HeaderShowNavigator";
 import { useApp } from "../../../../state/AppContext";
-import SideBarNavigator from "../../../../tracking/components/SideBarNavigator/SideBarNavigator";
+import SideBarNavigator from "../../../../shared/pages/SideBarNavigator/SideBarNavigator";
 
 type AppContextType = {
     sidebarOpen: boolean;

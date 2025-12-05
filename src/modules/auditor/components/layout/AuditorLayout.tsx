@@ -10,17 +10,22 @@ type AppContextType = {
     toggleSidebar: () => void;
 }
 const menuOptions = [
-    { id: "inbox", name: "Correos", path: "/integrador/inbox", icon: "📧" },
-    { id: "history", name: "Historial", path: "/integrador/history", icon: "📜" },
+    { id: "dashboard", name: "Panel", path: "/auditor/dashboard", icon: "📧" },
+    { id: "board", name: "Tablero", path: "/auditor/tablero", icon: "📊" },
+    { id: "exportacionComparticion", name: "Exportación y Compartición", path: "/auditor/exportacion", icon: "📤" },
+    { id: "analisisTiempos", name: "Análisis de Tiempos", path: "/auditor/analisisTiempos", icon: "⏱" },
+    { id: "analisisCumplimiento", name: "Análisis de Cumplimiento", path: "/auditor/analisisCumplimiento", icon: "✅" },
+    { id: "reportesEntidad", name: "Reportes por Entidad", path: "/auditor/reportesEntidad", icon: "📈"},
+    { id: "reporteGestor", name: "Reporte por Gestor", path: "/auditor/reporteGestor", icon: "📊"}
 ]
 const footerOptions = [
-    { id: "help", name: "Ayuda", path: "/integrador", icon: "❓" },
-    { id: "logout", name: "Cerrar Sesión", path: "/integrador/logout", icon: "🚪" }
+    { id: "help", name: "Ayuda", path: "/auditor", icon: "❓" },
+    { id: "logout", name: "Cerrar Sesión", path: "/auditor/logout", icon: "🚪" }
 ]
 
 
 
-const IntegradorLayout = (): JSX.Element => {
+const AuditorLayout = (): JSX.Element => {
     const { sidebarOpen, toggleSidebar }: AppContextType = useApp();
     return (
         <div className={`${sidebarOpen ? "grid grid-cols-1" : "grid grid-cols-[200px_1fr]"} gap-0 h-screen`}>
@@ -37,4 +42,4 @@ const IntegradorLayout = (): JSX.Element => {
 }
 
 
-export default IntegradorLayout;
+export default AuditorLayout;
