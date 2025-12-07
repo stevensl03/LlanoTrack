@@ -1,19 +1,26 @@
 import { Link } from "react-router";
 import { useApp } from "../../../state/AppContext";
-import { useAuth } from "../../../state/AuthContext";
+//import { useAuth } from "../../../state/AuthContext";
 import { useState } from "react";
 
 
 
-type sideBarNavProps = {
+type sideBarNavAndUserProps = {
   showAll: boolean;
   menuOptions: Array<{ id: string; name: string; path: string; icon: string; badge?: number }>;
   footerOptions: Array<{ id: string; name: string; path: string; icon: string }>;
+      user: {
+        nombres: string;
+        email: string;
+    } | null;
+    logout: () => void;
 }
 
-const SideBarNavigator = ({ showAll,menuOptions, footerOptions }: sideBarNavProps) => {
+
+
+const SideBarNavigator = ({ showAll,menuOptions, footerOptions, user, logout }: sideBarNavAndUserProps) => {
   const { setCurrentPageTitle } = useApp();
-  const { user, logout } = useAuth();
+  //const { user, logout } = useAuth();
   const [activeLink, setActiveLink]:[string, (id: string) => void] = useState("dashboard");
 
   if (!showAll) {
@@ -22,10 +29,10 @@ const SideBarNavigator = ({ showAll,menuOptions, footerOptions }: sideBarNavProp
         {/* User Info */}
         <Link to="/perfil" className="flex items-center gap-3 mb-8 p-2">
           <div className="w-9 h-9 bg-orange-200 rounded-full flex items-center justify-center text-sm font-bold text-orange-700">
-            {user?.nombre?.charAt(0) || "U"}
+            {user?.nombres?.charAt(0) || "U"}
           </div>
           <div>
-            <p className="text-gray-900 font-bold text-sm">{user?.nombre || "Usuario"}</p>
+            <p className="text-gray-900 font-bold text-sm">{user?.nombres || "Usuario"}</p>
             <p className="text-gray-500 text-xs">{user?.email || "email@ejemplo.com"}</p>
           </div>
         </Link>

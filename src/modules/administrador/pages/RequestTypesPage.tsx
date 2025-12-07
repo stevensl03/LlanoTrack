@@ -1,384 +1,391 @@
-"use client"
+import React, { useState, useEffect } from 'react';
+import { useMockService } from '../../../shared/hooks/useMockService';
+import type { RequestType, RequestTypeFormData } from '../types/index';
 
-import { useState } from "react"
-import RequestTypeFormModal from "../components/modal/RequestTypeFormModal"
+const RequestTypesPage: React.FC = () => {
+  // Usar el hook del servicio
+  const { 
+    getRequestTypes, 
+    createRequestType, 
+    updateRequestType, 
+    deleteRequestType, 
+    loading, 
+    error 
+  } = useMockService();
 
-interface RequestType {
-    id: string
-    name: string
-    description: string
-    defaultResponseTime: number
-    legalReference: string
-    priority: "low" | "medium" | "high"
-    category: string
-    status: "active" | "inactive"
-    createdAt: string
-}
+  const [requestTypes, setRequestTypes] = useState<RequestType[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showModal, setShowModal] = useState(false);
+  const [editingType, setEditingType] = useState<RequestType | null>(null);
 
-export default function RequestTypesPage() {
-    const [requestTypes, setRequestTypes] = useState<RequestType[]>([
-        {
-            id: "1",
-            name: "Acceso a Información Pública",
-            description: "Solicitud de información pública según Ley de Transparencia",
-            defaultResponseTime: 10,
-            legalReference: "Ley 1712 de 2014",
-            priority: "high",
-            category: "Legal",
-            status: "active",
-            createdAt: "2024-01-10",
-        },
-        {
-            id: "2",
-            name: "Petición, Queja o Reclamo (PQR)",
-            description: "Peticiones, quejas o reclamos ciudadanos",
-            defaultResponseTime: 15,
-            legalReference: "Decreto 1074 de 2015",
-            priority: "medium",
-            category: "Ciudadana",
-            status: "active",
-            createdAt: "2024-01-11",
-        },
-        {
-            id: "3",
-            name: "Derecho de Petición",
-            description: "Ejercicio del derecho constitucional de petición",
-            defaultResponseTime: 10,
-            legalReference: "Artículo 23 Constitución Política",
-            priority: "high",
-            category: "Legal",
-            status: "active",
-            createdAt: "2024-01-12",
-        },
-        {
-            id: "4",
-            name: "Solicitud Especial",
-            description: "Solicitudes especiales no contempladas en otras categorías",
-            defaultResponseTime: 20,
-            legalReference: "Manual Interno AZ Digital",
-            priority: "low",
-            category: "Administrativa",
-            status: "active",
-            createdAt: "2024-01-13",
-        },
-        {
-            id: "5",
-            name: "Requerimiento Legal",
-            description: "Requerimientos de autoridades judiciales o administrativas",
-            defaultResponseTime: 5,
-            legalReference: "Código de Procedimiento Administrativo",
-            priority: "high",
-            category: "Legal",
-            status: "active",
-            createdAt: "2024-01-14",
-        },
-        {
-            id: "6",
-            name: "Consulta Técnica",
-            description: "Consultas sobre aspectos técnicos o procedimentales",
-            defaultResponseTime: 30,
-            legalReference: "Manual de Procedimientos",
-            priority: "low",
-            category: "Técnica",
-            status: "inactive",
-            createdAt: "2024-01-15",
-        },
-    ])
+  // Cargar tipos de solicitud al montar el componente
+  useEffect(() => {
+    loadRequestTypes();
+  }, []);
 
-    const [searchTerm, setSearchTerm] = useState("")
-    const [categoryFilter, setCategoryFilter] = useState("all")
-    const [priorityFilter, setPriorityFilter] = useState("all")
-    const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all")
-    const [showFormModal, setShowFormModal] = useState(false)
-    const [selectedRequestType, setSelectedRequestType] = useState<RequestType | null>(null)
-
-    const categories = [...new Set(requestTypes.map(rt => rt.category))]
-
-    const filteredRequestTypes = requestTypes.filter(rt => {
-        const matchesSearch =
-            rt.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            rt.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            rt.legalReference.toLowerCase().includes(searchTerm.toLowerCase())
-
-        const matchesCategory = categoryFilter === "all" || rt.category === categoryFilter
-        const matchesPriority = priorityFilter === "all" || rt.priority === priorityFilter
-        const matchesStatus = statusFilter === "all" || rt.status === statusFilter
-
-        return matchesSearch && matchesCategory && matchesPriority && matchesStatus
-    })
-
-    const handleCreate = () => {
-        setSelectedRequestType(null)
-        setShowFormModal(true)
+  const loadRequestTypes = async () => {
+    const response = await getRequestTypes();
+    if (response.success && response.data) {
+      setRequestTypes(response.data);
     }
+  };
 
-    const handleEdit = (requestType: RequestType) => {
-        setSelectedRequestType(requestType)
-        setShowFormModal(true)
+  const filteredTypes = requestTypes.filter(type =>
+    type.tipo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    type.descripcion?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm('¿Está seguro de eliminar este tipo de solicitud?')) {
+      const response = await deleteRequestType(id);
+      if (response.success) {
+        await loadRequestTypes(); // Recargar la lista
+      }
     }
+  };
 
-    const handleToggleStatus = (id: string) => {
-        setRequestTypes(rt => rt.map(item =>
-            item.id === id
-                ? { ...item, status: item.status === "active" ? "inactive" : "active" }
-                : item
-        ))
+  const handleEdit = (type: RequestType) => {
+    setEditingType(type);
+    setShowModal(true);
+  };
+
+  const handleSave = async (typeData: RequestTypeFormData) => {
+    if (editingType) {
+      // Actualizar tipo existente
+      const response = await updateRequestType(editingType.id, typeData);
+      if (response.success) {
+        await loadRequestTypes();
+      }
+    } else {
+      // Crear nuevo tipo
+      const response = await createRequestType(typeData);
+      if (response.success) {
+        await loadRequestTypes();
+      }
     }
+    setShowModal(false);
+    setEditingType(null);
+  };
 
-    const handleDelete = (id: string) => {
-        if (window.confirm("¿Está seguro de eliminar este tipo de solicitud?")) {
-            setRequestTypes(rt => rt.filter(item => item.id !== id))
-        }
+  const handleAddNew = () => {
+    setEditingType(null);
+    setShowModal(true);
+  };
+
+  const getUrgencyColor = (urgency: string) => {
+    switch (urgency) {
+      case 'ALTA': return 'bg-red-100 text-red-800';
+      case 'MEDIA': return 'bg-yellow-100 text-yellow-800';
+      case 'BAJA': return 'bg-green-100 text-green-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
+  };
 
-    const handleSave = (data: Omit<RequestType, "id" | "createdAt">) => {
-        if (selectedRequestType) {
-            // Editar
-            setRequestTypes(rt => rt.map(item =>
-                item.id === selectedRequestType.id
-                    ? { ...item, ...data }
-                    : item
-            ))
-        } else {
-            // Crear nuevo
-            const newItem: RequestType = {
-                id: `rt_${Date.now()}`,
-                ...data,
-                createdAt: new Date().toISOString().split('T')[0],
-            }
-            setRequestTypes([newItem, ...requestTypes])
-        }
-        setShowFormModal(false)
-        setSelectedRequestType(null)
-    }
+  const urgencyLevels = ['BAJA', 'MEDIA', 'ALTA'] as const;
 
-    const getPriorityBadge = (priority: string) => {
-        const styles = {
-            high: "bg-red-100 text-red-700 border-red-200",
-            medium: "bg-yellow-100 text-yellow-700 border-yellow-200",
-            low: "bg-green-100 text-green-700 border-green-200",
-        }
-        return (
-            <span className={`px-2 py-1 rounded-full text-xs font-medium border ${styles[priority as keyof typeof styles]}`}>
-                {priority === "high" ? "🔴 Alta" : priority === "medium" ? "🟡 Media" : "🟢 Baja"}
-            </span>
-        )
-    }
-
-    const getCategoryColor = (category: string) => {
-        const colors: Record<string, string> = {
-            "Legal": "text-blue-600 bg-blue-50",
-            "Ciudadana": "text-green-600 bg-green-50",
-            "Administrativa": "text-purple-600 bg-purple-50",
-            "Técnica": "text-orange-600 bg-orange-50",
-        }
-        return colors[category] || "text-gray-600 bg-gray-50"
-    }
-
+  if (loading && requestTypes.length === 0) {
     return (
-        <div className="p-6 bg-gray-50 min-h-screen">
-            {/* Header */}
-            <div className="mb-8">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-                    <div>
-                        <h1 className="text-3xl font-bold text-gray-900 mb-2">📋 Tipos de Solicitud</h1>
-                        <p className="text-gray-600">Configura los tipos de solicitudes procesadas en el sistema</p>
-                    </div>
-                    <button
-                        onClick={handleCreate}
-                        className="px-4 py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-sm font-medium transition-colors flex items-center gap-2"
-                    >
-                        <span>+</span>
-                        Nuevo tipo
-                    </button>
-                </div>
+      <div className="p-6 flex justify-center items-center h-64">
+        <div className="text-gray-600">Cargando tipos de solicitud...</div>
+      </div>
+    );
+  }
 
-                {/* Filters */}
-                <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm mb-6">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">Buscar</label>
-                            <input
-                                type="text"
-                                placeholder="Nombre o descripción..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">Categoría</label>
-                            <select
-                                value={categoryFilter}
-                                onChange={(e) => setCategoryFilter(e.target.value)}
-                                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                            >
-                                <option value="all">Todas las categorías</option>
-                                {categories.map(category => (
-                                    <option key={category} value={category}>{category}</option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">Prioridad</label>
-                            <select
-                                value={priorityFilter}
-                                onChange={(e) => setPriorityFilter(e.target.value)}
-                                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                            >
-                                <option value="all">Todas las prioridades</option>
-                                <option value="high">Alta</option>
-                                <option value="medium">Media</option>
-                                <option value="low">Baja</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">Estado</label>
-                            <select
-                                value={statusFilter}
-                                onChange={(e) => setStatusFilter(e.target.value as any)}
-                                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                            >
-                                <option value="all">Todos los estados</option>
-                                <option value="active">Activos</option>
-                                <option value="inactive">Inactivos</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Request Types Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                {filteredRequestTypes.map(rt => (
-                    <div key={rt.id} className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-200">
-                        <div className="p-6">
-                            <div className="flex items-start justify-between mb-4">
-                                <div className="flex-1">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <h3 className="text-lg font-bold text-gray-900">{rt.name}</h3>
-                                        {rt.status === "inactive" && (
-                                            <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs">
-                                                Inactivo
-                                            </span>
-                                        )}
-                                    </div>
-                                    <div className="flex items-center gap-2 mb-3">
-                                        {getPriorityBadge(rt.priority)}
-                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(rt.category)}`}>
-                                            {rt.category}
-                                        </span>
-                                        <span className="text-xs text-gray-500">Creado: {rt.createdAt}</span>
-                                    </div>
-                                </div>
-                                <button
-                                    onClick={() => handleEdit(rt)}
-                                    className="p-2 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
-                                >
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                    </svg>
-                                </button>
-                            </div>
-
-                            {/* Description */}
-                            <div className="mb-4">
-                                <p className="text-sm text-gray-600">{rt.description}</p>
-                            </div>
-
-                            {/* Details */}
-                            <div className="space-y-3">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm font-semibold text-gray-700">Tiempo de respuesta:</span>
-                                    <span className="text-sm font-bold text-gray-900">{rt.defaultResponseTime} días</span>
-                                </div>
-                                <div>
-                                    <span className="text-sm font-semibold text-gray-700">Referencia legal:</span>
-                                    <p className="text-sm text-gray-600">{rt.legalReference}</p>
-                                </div>
-                            </div>
-
-                            {/* Actions */}
-                            <div className="flex items-center gap-2 mt-6 pt-4 border-t border-gray-100">
-                                <button
-                                    onClick={() => handleToggleStatus(rt.id)}
-                                    className={`flex-1 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${rt.status === "active"
-                                        ? "text-yellow-600 hover:bg-yellow-50"
-                                        : "text-green-600 hover:bg-green-50"
-                                        }`}
-                                >
-                                    {rt.status === "active" ? "Desactivar" : "Activar"}
-                                </button>
-                                <button
-                                    onClick={() => handleDelete(rt.id)}
-                                    className="flex-1 px-3 py-2 text-red-600 hover:bg-red-50 text-sm font-medium rounded-lg transition-colors"
-                                >
-                                    Eliminar
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                ))}
-            </div>
-
-            {filteredRequestTypes.length === 0 && (
-                <div className="text-center py-12">
-                    <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-                        <span className="text-2xl">📋</span>
-                    </div>
-                    <h3 className="text-lg font-semibold text-gray-700 mb-2">No se encontraron tipos de solicitud</h3>
-                    <p className="text-gray-500 mb-4">Intenta cambiar los filtros de búsqueda</p>
-                    <button
-                        onClick={() => {
-                            setSearchTerm("")
-                            setCategoryFilter("all")
-                            setPriorityFilter("all")
-                            setStatusFilter("all")
-                        }}
-                        className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm"
-                    >
-                        Limpiar filtros
-                    </button>
-                </div>
-            )}
-
-            {/* Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-                    <p className="text-sm text-gray-600 mb-1">Total tipos</p>
-                    <p className="text-2xl font-bold text-gray-900">{requestTypes.length}</p>
-                </div>
-                <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-                    <p className="text-sm text-gray-600 mb-1">Alta prioridad</p>
-                    <p className="text-2xl font-bold text-red-600">{requestTypes.filter(rt => rt.priority === "high").length}</p>
-                </div>
-                <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-                    <p className="text-sm text-gray-600 mb-1">Tiempo promedio</p>
-                    <p className="text-2xl font-bold text-blue-600">
-                        {Math.round(requestTypes.reduce((acc, rt) => acc + rt.defaultResponseTime, 0) / requestTypes.length)} días
-                    </p>
-                </div>
-                <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-                    <p className="text-sm text-gray-600 mb-1">Categorías</p>
-                    <p className="text-2xl font-bold text-purple-600">{categories.length}</p>
-                </div>
-            </div>
-
-            {/* Form Modal */}
-            {showFormModal && (
-                <RequestTypeFormModal
-                    requestType={selectedRequestType}
-                    onClose={() => {
-                        setShowFormModal(false)
-                        setSelectedRequestType(null)
-                    }}
-                    onSave={handleSave}
-                    categories={categories}
-                />
-            )}
+  if (error && requestTypes.length === 0) {
+    return (
+      <div className="p-6">
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+          <strong>Error: </strong> {error}
         </div>
-    )
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-gray-800">📝 Gestión de Tipos de Solicitud</h1>
+        <button
+          onClick={handleAddNew}
+          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={loading}
+        >
+          <span className="mr-2">+</span> Nuevo Tipo
+        </button>
+      </div>
+
+      <div className="mb-6">
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Buscar por tipo o descripción..."
+            className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            disabled={loading}
+          />
+          <div className="absolute left-3 top-2.5 text-gray-400">
+            🔍
+          </div>
+        </div>
+      </div>
+
+      {error && (
+        <div className="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+          <strong>Error: </strong> {error}
+        </div>
+      )}
+
+      <div className="bg-white rounded-lg shadow overflow-hidden">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Tipo de Solicitud
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Plazo (días)
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Urgencia
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Descripción
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Estado
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Acciones
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {filteredTypes.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                  {searchTerm ? 'No se encontraron tipos con ese criterio' : 'No hay tipos de solicitud registrados'}
+                </td>
+              </tr>
+            ) : (
+              filteredTypes.map((type) => (
+                <tr key={type.id}>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm font-medium text-gray-900">{type.tipo}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900 font-medium">{type.plazoDias} días</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getUrgencyColor(type.urgencia)}`}>
+                      {type.urgencia}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="text-sm text-gray-500 max-w-xs truncate" title={type.descripcion}>
+                      {type.descripcion || 'Sin descripción'}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                      type.activo 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {type.activo ? 'Activo' : 'Inactivo'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                    <button
+                      onClick={() => handleEdit(type)}
+                      className="text-blue-600 hover:text-blue-900 disabled:opacity-50"
+                      disabled={loading}
+                    >
+                      Editar
+                    </button>
+                    <button
+                      onClick={() => handleDelete(type.id)}
+                      className="text-red-600 hover:text-red-900 disabled:opacity-50"
+                      disabled={loading}
+                    >
+                      Eliminar
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Modal para crear/editar tipo de solicitud */}
+      {showModal && (
+        <RequestTypeModal
+          requestType={editingType}
+          onSave={handleSave}
+          onClose={() => {
+            setShowModal(false);
+            setEditingType(null);
+          }}
+          urgencyLevels={urgencyLevels}
+          loading={loading}
+        />
+      )}
+    </div>
+  );
+};
+
+interface RequestTypeModalProps {
+  requestType: RequestType | null;
+  onSave: (typeData: RequestTypeFormData) => void;
+  onClose: () => void;
+  urgencyLevels: readonly string[];
+  loading?: boolean;
 }
+
+const RequestTypeModal: React.FC<RequestTypeModalProps> = ({ 
+  requestType, 
+  onSave, 
+  onClose, 
+  urgencyLevels, 
+  loading 
+}) => {
+  const [formData, setFormData] = useState<RequestTypeFormData>({
+    tipo: requestType?.tipo || '',
+    plazoDias: requestType?.plazoDias || 1,
+    urgencia: requestType?.urgencia || 'MEDIA',
+    descripcion: requestType?.descripcion || '',
+    activo: requestType?.activo ?? true,
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSave(formData);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
+        <div className="px-6 py-4 border-b">
+          <h2 className="text-lg font-semibold text-gray-800">
+            {requestType ? 'Editar Tipo de Solicitud' : 'Nuevo Tipo de Solicitud'}
+          </h2>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <div className="px-6 py-4 space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Tipo de Solicitud *
+              </label>
+              <input
+                type="text"
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                placeholder="Ej: Derecho de Petición"
+                value={formData.tipo}
+                onChange={(e) => setFormData({ ...formData, tipo: e.target.value })}
+                disabled={loading}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Plazo de Respuesta (días) *
+              </label>
+              <input
+                type="number"
+                min="1"
+                max="365"
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                value={formData.plazoDias}
+                onChange={(e) => setFormData({ ...formData, plazoDias: parseInt(e.target.value) || 1 })}
+                disabled={loading}
+              />
+              <p className="text-sm text-gray-500 mt-1">
+                Número de días hábiles para responder
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Nivel de Urgencia *
+              </label>
+              <div className="flex space-x-4">
+                {urgencyLevels.map((level) => (
+                  <label key={level} className="flex items-center">
+                    <input
+                      type="radio"
+                      name="urgency"
+                      value={level}
+                      checked={formData.urgencia === level}
+                      onChange={(e) => setFormData({ ...formData, urgencia: e.target.value as any })}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
+                      disabled={loading}
+                    />
+                    <span className="ml-2 text-sm text-gray-700">{level}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Descripción (Opcional)
+              </label>
+              <textarea
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                placeholder="Descripción detallada del tipo de solicitud..."
+                value={formData.descripcion}
+                onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
+                disabled={loading}
+              />
+            </div>
+
+            {requestType && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Estado
+                </label>
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded disabled:opacity-50"
+                    checked={formData.activo}
+                    onChange={(e) => setFormData({ ...formData, activo: e.target.checked })}
+                    disabled={loading}
+                  />
+                  <label className="ml-2 block text-sm text-gray-900">
+                    Tipo activo
+                  </label>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="px-6 py-4 border-t flex justify-end space-x-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 disabled:opacity-50"
+              disabled={loading}
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={loading}
+            >
+              {loading ? 'Guardando...' : requestType ? 'Actualizar' : 'Crear'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default RequestTypesPage;

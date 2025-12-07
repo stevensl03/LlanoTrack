@@ -13,40 +13,17 @@ import {
   SpinnerCircule,
   ProtectedRoute,
   AdminPanelPage,
-  InboxPage,
-  HistoryPage,
-  AlertsConfigurationPage,
+
   EntitiesManagementPage,
   RequestTypesPage,
-  ResponseTimesPage,
   TrackingLayout,
   DashBoard,
-  IntegradorLayout,
   AdminLayout,
   AdminDashboardPage,
   UsersManagementPage,
-  ActivityHistoryPage,
-  GestorLayout,
-  GestorDashboardPage,
-  GestorEmailDetailPage,
-  TemplatesPage,
-  WorkflowTrackingPage,
-  RevisorLayout,
-  RevisorDashboardPage,
-  EmailDetailPage,
-  ReviewHistoryPage,
-  AprobadorLayout,
-  AprobadorDashboardPage,
-  AprobadorHistoryPage,
-  AprobadorDetailPage,
   LandingPage,
-  AuditorDashboardPage,
-  AuditorTableroPage,
-  ExportacionComparticionPage,
-  AnalisisTiemposPage,
-  AuditorCumplimientoPage,
-  ReportesEntidadPage,
-  ReporteGestorPage,
+  DashboardPage,
+  TrazabilidadPage,
   AuditorLayout,
   BusquedaGlobal,
   CentroNotificaciones,
@@ -88,21 +65,6 @@ const AppRouter = () => {
           <Route path="/tracking/admin-panel" element={<AdminPanelPage />} />
         </Route>
 
-        {/* Rutas para el layout de integrador */}
-        <Route
-          path="/integrador"
-          element={
-            <ProtectedRoute roles={["ADMINISTRADOR_SISTEMA", "INTEGRADOR"]}>
-              <Suspense fallback={<SpinnerCircule />}>
-                <IntegradorLayout />
-              </Suspense>
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<LandingPage />} />
-          <Route path="/integrador/inbox" element={<InboxPage />} />
-          <Route path="/integrador/history" element={<HistoryPage />} />
-        </Route>
 
         {/* Rutas para el layout de administrador */}
         <Route
@@ -118,64 +80,10 @@ const AppRouter = () => {
           <Route index element={<LandingPage   />} />
           <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
           <Route path="/admin/usersConfig" element={<UsersManagementPage />} />
-          <Route path="/admin/activityHistory" element={<ActivityHistoryPage />} />
-          <Route path="/admin/alertsConfig" element={<AlertsConfigurationPage />} />
           <Route path="/admin/entitiesConfig" element={<EntitiesManagementPage />} />
           <Route path="/admin/requestTypesConfig" element={<RequestTypesPage />} />
-          <Route path="/admin/responseTime" element={<ResponseTimesPage />} />
         </Route>
 
-        {/* Rutas para el layout de gestor */}
-        <Route
-          path="/gestor"
-          element={
-            <ProtectedRoute roles={["ADMINISTRADOR_SISTEMA", "GESTOR"]}>
-              <Suspense fallback={<SpinnerCircule />}>
-                <GestorLayout />
-              </Suspense>
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<LandingPage />} />
-          <Route path="/gestor/dashboard" element={<GestorDashboardPage />} />
-          <Route path="/gestor/emailDetail" element={<GestorEmailDetailPage />} />
-          <Route path="/gestor/templates" element={<TemplatesPage />} />
-          <Route path="/gestor/workflowTracking" element={<WorkflowTrackingPage />} />
-        </Route>
-
-        {/* Rutas para el layout de revisor */}
-        <Route
-          path="/revisor"
-          element={
-            <ProtectedRoute roles={["ADMINISTRADOR_SISTEMA", "REVISOR"]}>
-              <Suspense fallback={<SpinnerCircule />}>
-                <RevisorLayout />
-              </Suspense>
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<LandingPage />} />
-          <Route path="/revisor/dashboard" element={<RevisorDashboardPage />} />
-          <Route path="/revisor/emailDetail/:id" element={<EmailDetailPage />} />
-          <Route path="/revisor/reviewHistory" element={<ReviewHistoryPage />} />
-        </Route>
-
-        {/* Rutas para el layout de aprobador */}
-        <Route
-          path="/aprobador"
-          element={
-            <ProtectedRoute roles={["ADMINISTRADOR_SISTEMA", "APROBADOR"]}>
-              <Suspense fallback={<SpinnerCircule />}>
-                <AprobadorLayout />
-              </Suspense>
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<LandingPage />} />
-          <Route path="/aprobador/dashboard" element={<AprobadorDashboardPage />} />
-          <Route path="/aprobador/history" element={<AprobadorHistoryPage />} />
-          <Route path="/aprobador/detail/:id" element={<AprobadorDetailPage />} />
-        </Route>
 
         {/* Rutas para el layout de auditor */}
         <Route
@@ -189,13 +97,8 @@ const AppRouter = () => {
           }
         >
           <Route index element={<LandingPage />} />
-          <Route path="/auditor/dashboard" element={<AuditorDashboardPage />} />
-          <Route path="/auditor/tablero" element={<AuditorTableroPage />} />
-          <Route path="/auditor/exportacion" element={<ExportacionComparticionPage />} />
-          <Route path="/auditor/analisisTiempos" element={<AnalisisTiemposPage />} />
-          <Route path="/auditor/analisisCumplimiento" element={<AuditorCumplimientoPage />} />
-          <Route path="/auditor/reportesEntidad" element={<ReportesEntidadPage />} />
-          <Route path="/auditor/reporteGestor" element={<ReporteGestorPage />} />
+          <Route path="/auditor/dashboard" element={<DashboardPage />} />
+          <Route path="/auditor/trazabilidad/:id" element={<TrazabilidadPage />} />
         </ Route >
 
         {/* Rutas generales */}
