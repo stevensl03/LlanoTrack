@@ -1,24 +1,19 @@
 // pages/PerfilUsuario.tsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
+import { useAuth } from '../../../state/AuthContext';
+import { useMockService } from '../../hooks/useMockService';
+import type { User } from '../../types/core.types';
 
 const PerfilUsuario = () => {
   const navigate = useNavigate();
+  const { user: currentUser } = useAuth();
+  const { getCurrentUser, updateUser } = useMockService();
   
-  // Datos del usuario (simulados)
-  const [usuario, setUsuario] = useState({
-    nombre: 'María González',
-    cargo: 'Revisor Legal Senior',
-    email: 'maria.gonzalez@empresa.com',
-    idColaborador: 'EMP-2023-045',
-    rol: 'Revisor',
-    rolesAdicionales: ['Auditor'],
-    area: 'Departamento Legal',
-    telefono: '+57 300 123 4567',
-    fechaIngreso: '2023-03-15',
-    estado: 'Activo',
-    avatar: null
-  });
+  // Estado para datos del usuario
+  const [usuario, setUsuario] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   const [preferencias, setPreferencias] = useState({
     notificacionesEmail: true,
@@ -54,11 +49,69 @@ const PerfilUsuario = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
+  const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  const handleSavePerfil = () => {
-    // Aquí iría la lógica para guardar en el backend
-    setIsEditing(false);
-    alert('Perfil actualizado correctamente');
+  // Cargar datos del usuario
+  useEffect(() => {
+    const loadUserData = async () => {
+      if (currentUser) {
+        setUsuario(currentUser);
+        setLoading(false);
+      } else {
+        try {
+          const response = await getCurrentUser();
+          if (response.success && response.data) {
+            setUsuario(response.data);
+          }
+        } catch (error) {
+          console.error('Error cargando datos del usuario:', error);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadUserData();
+  }, [currentUser, getCurrentUser]);
+
+  const handleSavePerfil = async () => {
+    if (!usuario) return;
+
+    setSaving(true);
+    setSaveMessage(null);
+
+    try {
+      // Preparar datos para actualizar (excluir campos sensibles)
+      const userData = {
+        nombre: usuario.nombre,
+        email: usuario.email,
+        telefono: usuario.telefono,
+        departamento: usuario.departamento,
+        area: usuario.area
+      };
+
+      const response = await updateUser(usuario.id, userData);
+      
+      if (response.success) {
+        setSaveMessage({ type: 'success', text: 'Perfil actualizado correctamente' });
+        setIsEditing(false);
+        
+        // Actualizar usuario en el contexto si es necesario
+        if (response.data) {
+          setUsuario(response.data);
+        }
+        
+        // Limpiar mensaje después de 3 segundos
+        setTimeout(() => setSaveMessage(null), 3000);
+      } else {
+        setSaveMessage({ type: 'error', text: response.message || 'Error al actualizar el perfil' });
+      }
+    } catch (error) {
+      setSaveMessage({ type: 'error', text: 'Error de conexión al guardar' });
+      console.error('Error guardando perfil:', error);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleChangePassword = () => {
@@ -88,20 +141,68 @@ const PerfilUsuario = () => {
       nuevoPassword: '',
       confirmarPassword: ''
     });
-    alert('Contraseña cambiada exitosamente');
+    
+    setSaveMessage({ type: 'success', text: 'Contraseña cambiada exitosamente' });
+    setTimeout(() => setSaveMessage(null), 3000);
   };
 
   const getRolColor = (rol: string) => {
     switch (rol.toLowerCase()) {
-      case 'revisor': return 'bg-blue-100 text-blue-800';
-      case 'gestor': return 'bg-green-100 text-green-800';
-      case 'aprobador': return 'bg-purple-100 text-purple-800';
-      case 'integrator': return 'bg-orange-100 text-orange-800';
-      case 'administrador': return 'bg-red-100 text-red-800';
-      case 'auditor': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'admin':
+      case 'administrador': 
+        return 'bg-red-100 text-red-800 border border-red-200';
+      case 'revisor': 
+        return 'bg-blue-100 text-blue-800 border border-blue-200';
+      case 'gestor': 
+        return 'bg-green-100 text-green-800 border border-green-200';
+      case 'aprobador': 
+        return 'bg-purple-100 text-purple-800 border border-purple-200';
+      case 'integrator': 
+        return 'bg-orange-100 text-orange-800 border border-orange-200';
+      case 'auditor': 
+        return 'bg-yellow-100 text-yellow-800 border border-yellow-200';
+      default: 
+        return 'bg-gray-100 text-gray-800 border border-gray-200';
     }
   };
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'No disponible';
+    return new Date(dateString).toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Cargando perfil...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!usuario) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-4xl mb-4">👤</div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Usuario no encontrado</h2>
+          <p className="text-gray-600 mb-4">No se pudieron cargar los datos del perfil</p>
+          <button 
+            onClick={() => navigate(-1)}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Volver
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6">
@@ -117,13 +218,27 @@ const PerfilUsuario = () => {
             </div>
             <button 
               onClick={() => navigate(-1)}
-              className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center"
+              className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center transition-colors"
             >
               <span className="mr-2">←</span>
               Volver
             </button>
           </div>
         </div>
+
+        {/* Mensajes de éxito/error */}
+        {saveMessage && (
+          <div className={`mb-6 p-4 rounded-lg ${
+            saveMessage.type === 'success' 
+              ? 'bg-green-50 border border-green-200 text-green-800' 
+              : 'bg-red-50 border border-red-200 text-red-800'
+          }`}>
+            <div className="flex items-center">
+              <span className="mr-2">{saveMessage.type === 'success' ? '✅' : '❌'}</span>
+              <p>{saveMessage.text}</p>
+            </div>
+          </div>
+        )}
 
         {/* Tabs de navegación */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm mb-6">
@@ -183,40 +298,61 @@ const PerfilUsuario = () => {
                     <div className="bg-gray-50 rounded-xl p-6">
                       <div className="flex flex-col items-center">
                         <div className="h-32 w-32 rounded-full bg-blue-100 flex items-center justify-center mb-4">
-                          <span className="text-4xl text-blue-600">👤</span>
+                          <span className="text-4xl text-blue-600">
+                            {usuario.nombre?.charAt(0) || '👤'}
+                          </span>
                         </div>
-                        <h2 className="text-xl font-bold text-gray-900">{usuario.nombre}</h2>
-                        <p className="text-gray-600">{usuario.cargo}</p>
+                        <h2 className="text-xl font-bold text-gray-900 text-center">
+                          {usuario.nombre || 'Sin nombre'}
+                        </h2>
+                        <p className="text-gray-600 text-center">{usuario.departamento || usuario.area || 'Sin departamento'}</p>
                         
-                        <div className="mt-4 space-y-2">
-                          <div className="flex items-center">
-                            <span className="text-gray-500 mr-2">📧</span>
-                            <span className="text-sm">{usuario.email}</span>
+                        <div className="mt-4 space-y-2 w-full">
+                          <div className="flex items-center p-3 bg-white rounded-lg">
+                            <span className="text-gray-500 mr-3">📧</span>
+                            <span className="text-sm break-all">{usuario.email || 'Sin email'}</span>
                           </div>
-                          <div className="flex items-center">
-                            <span className="text-gray-500 mr-2">📞</span>
-                            <span className="text-sm">{usuario.telefono}</span>
+                          <div className="flex items-center p-3 bg-white rounded-lg">
+                            <span className="text-gray-500 mr-3">📞</span>
+                            <span className="text-sm">{usuario.telefono || 'Sin teléfono'}</span>
                           </div>
-                          <div className="flex items-center">
-                            <span className="text-gray-500 mr-2">🏢</span>
-                            <span className="text-sm">{usuario.area}</span>
+                          <div className="flex items-center p-3 bg-white rounded-lg">
+                            <span className="text-gray-500 mr-3">🏢</span>
+                            <span className="text-sm">{usuario.area || usuario.departamento || 'Sin área'}</span>
                           </div>
                         </div>
                       </div>
                     </div>
                     
-                    {/* Roles */}
-                    <div className="mt-4 bg-gray-50 rounded-xl p-4">
-                      <h3 className="font-medium text-gray-900 mb-2">🎭 Roles asignados</h3>
-                      <div className="space-y-2">
+                    {/* Información del sistema */}
+                    <div className="mt-4 bg-gray-50 rounded-xl p-4 space-y-3">
+                      <div>
+                        <h3 className="font-medium text-gray-900 mb-2">🎭 Rol del sistema</h3>
                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getRolColor(usuario.rol)}`}>
-                          {usuario.rol}
+                          {usuario.rol || 'Sin rol asignado'}
                         </span>
-                        {usuario.rolesAdicionales.map((rol, index) => (
-                          <span key={index} className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getRolColor(rol)}`}>
-                            {rol}
+                      </div>
+                      
+                      <div>
+                        <h3 className="font-medium text-gray-900 mb-1">📊 Estado</h3>
+                        <div className="flex items-center">
+                          <div className={`h-2 w-2 rounded-full mr-2 ${usuario.activo ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                          <span className={`text-sm font-medium ${usuario.activo ? 'text-green-700' : 'text-red-700'}`}>
+                            {usuario.activo ? 'Activo' : 'Inactivo'}
                           </span>
-                        ))}
+                        </div>
+                      </div>
+                      
+                      {usuario.createdAt && (
+                        <div>
+                          <h3 className="font-medium text-gray-900 mb-1">📅 Miembro desde</h3>
+                          <p className="text-sm text-gray-600">{formatDate(usuario.createdAt)}</p>
+                        </div>
+                      )}
+                      
+                      <div>
+                        <h3 className="font-medium text-gray-900 mb-1">🆔 ID de Usuario</h3>
+                        <p className="text-sm text-gray-600 font-mono">{usuario.id}</p>
                       </div>
                     </div>
                   </div>
@@ -227,9 +363,14 @@ const PerfilUsuario = () => {
                       <h3 className="text-lg font-semibold text-gray-900">Información personal</h3>
                       <button
                         onClick={() => setIsEditing(!isEditing)}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+                        disabled={saving}
+                        className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+                          isEditing 
+                            ? 'bg-gray-600 text-white hover:bg-gray-700' 
+                            : 'bg-blue-600 text-white hover:bg-blue-700'
+                        } ${saving ? 'opacity-50 cursor-not-allowed' : ''}`}
                       >
-                        {isEditing ? 'Cancelar' : '✏️ Editar'}
+                        {saving ? 'Guardando...' : (isEditing ? 'Cancelar' : '✏️ Editar')}
                       </button>
                     </div>
 
@@ -242,49 +383,35 @@ const PerfilUsuario = () => {
                           {isEditing ? (
                             <input
                               type="text"
-                              value={usuario.nombre}
+                              value={usuario.nombre || ''}
                               onChange={(e) => setUsuario({...usuario, nombre: e.target.value})}
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              disabled={saving}
                             />
                           ) : (
-                            <p className="px-3 py-2 bg-gray-50 rounded-lg">{usuario.nombre}</p>
+                            <p className="px-3 py-2 bg-gray-50 rounded-lg">{usuario.nombre || 'No especificado'}</p>
                           )}
                         </div>
 
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Cargo
+                            Correo electrónico
                           </label>
                           {isEditing ? (
                             <input
-                              type="text"
-                              value={usuario.cargo}
-                              onChange={(e) => setUsuario({...usuario, cargo: e.target.value})}
+                              type="email"
+                              value={usuario.email || ''}
+                              onChange={(e) => setUsuario({...usuario, email: e.target.value})}
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              disabled={saving}
                             />
                           ) : (
-                            <p className="px-3 py-2 bg-gray-50 rounded-lg">{usuario.cargo}</p>
+                            <p className="px-3 py-2 bg-gray-50 rounded-lg">{usuario.email || 'No especificado'}</p>
                           )}
                         </div>
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Email corporativo
-                          </label>
-                          {isEditing ? (
-                            <input
-                              type="email"
-                              value={usuario.email}
-                              onChange={(e) => setUsuario({...usuario, email: e.target.value})}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            />
-                          ) : (
-                            <p className="px-3 py-2 bg-gray-50 rounded-lg">{usuario.email}</p>
-                          )}
-                        </div>
-
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
                             Teléfono
@@ -292,55 +419,73 @@ const PerfilUsuario = () => {
                           {isEditing ? (
                             <input
                               type="tel"
-                              value={usuario.telefono}
+                              value={usuario.telefono || ''}
                               onChange={(e) => setUsuario({...usuario, telefono: e.target.value})}
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              disabled={saving}
                             />
                           ) : (
-                            <p className="px-3 py-2 bg-gray-50 rounded-lg">{usuario.telefono}</p>
+                            <p className="px-3 py-2 bg-gray-50 rounded-lg">{usuario.telefono || 'No especificado'}</p>
+                          )}
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Departamento
+                          </label>
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              value={usuario.departamento || ''}
+                              onChange={(e) => setUsuario({...usuario, departamento: e.target.value})}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              disabled={saving}
+                            />
+                          ) : (
+                            <p className="px-3 py-2 bg-gray-50 rounded-lg">{usuario.departamento || 'No especificado'}</p>
                           )}
                         </div>
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Área/Departamento
+                          Área
                         </label>
                         {isEditing ? (
                           <input
                             type="text"
-                            value={usuario.area}
+                            value={usuario.area || ''}
                             onChange={(e) => setUsuario({...usuario, area: e.target.value})}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            disabled={saving}
                           />
                         ) : (
-                          <p className="px-3 py-2 bg-gray-50 rounded-lg">{usuario.area}</p>
+                          <p className="px-3 py-2 bg-gray-50 rounded-lg">{usuario.area || 'No especificado'}</p>
                         )}
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            ID de Colaborador
-                          </label>
-                          <p className="px-3 py-2 bg-gray-50 rounded-lg">{usuario.idColaborador}</p>
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Fecha de ingreso
-                          </label>
-                          <p className="px-3 py-2 bg-gray-50 rounded-lg">{usuario.fechaIngreso}</p>
-                        </div>
-                      </div>
-
                       {isEditing && (
-                        <div className="flex justify-end">
+                        <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+                          <button
+                            onClick={() => setIsEditing(false)}
+                            disabled={saving}
+                            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                          >
+                            Cancelar
+                          </button>
                           <button
                             onClick={handleSavePerfil}
-                            className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                            disabled={saving}
+                            className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center"
                           >
-                            💾 Guardar cambios
+                            {saving ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                Guardando...
+                              </>
+                            ) : (
+                              '💾 Guardar cambios'
+                            )}
                           </button>
                         </div>
                       )}
@@ -437,7 +582,7 @@ const PerfilUsuario = () => {
                         <div className="flex space-x-2">
                           <button
                             onClick={() => setPreferencias({...preferencias, tema: 'claro'})}
-                            className={`flex-1 py-2 border rounded-lg ${
+                            className={`flex-1 py-2 border rounded-lg transition-colors ${
                               preferencias.tema === 'claro' 
                                 ? 'border-blue-500 bg-blue-50 text-blue-700' 
                                 : 'border-gray-300 hover:bg-gray-50'
@@ -447,7 +592,7 @@ const PerfilUsuario = () => {
                           </button>
                           <button
                             onClick={() => setPreferencias({...preferencias, tema: 'oscuro'})}
-                            className={`flex-1 py-2 border rounded-lg ${
+                            className={`flex-1 py-2 border rounded-lg transition-colors ${
                               preferencias.tema === 'oscuro' 
                                 ? 'border-blue-500 bg-blue-50 text-blue-700' 
                                 : 'border-gray-300 hover:bg-gray-50'
@@ -457,7 +602,7 @@ const PerfilUsuario = () => {
                           </button>
                           <button
                             onClick={() => setPreferencias({...preferencias, tema: 'auto'})}
-                            className={`flex-1 py-2 border rounded-lg ${
+                            className={`flex-1 py-2 border rounded-lg transition-colors ${
                               preferencias.tema === 'auto' 
                                 ? 'border-blue-500 bg-blue-50 text-blue-700' 
                                 : 'border-gray-300 hover:bg-gray-50'
@@ -519,8 +664,11 @@ const PerfilUsuario = () => {
 
                 <div className="flex justify-end">
                   <button
-                    onClick={() => alert('Preferencias guardadas')}
-                    className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                    onClick={() => {
+                      setSaveMessage({ type: 'success', text: 'Preferencias guardadas' });
+                      setTimeout(() => setSaveMessage(null), 3000);
+                    }}
+                    className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                   >
                     💾 Guardar preferencias
                   </button>
@@ -538,7 +686,7 @@ const PerfilUsuario = () => {
                       <h3 className="text-lg font-semibold text-gray-900">🔐 Cambio de contraseña</h3>
                       <button
                         onClick={() => setIsChangingPassword(!isChangingPassword)}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm transition-colors"
                       >
                         {isChangingPassword ? 'Cancelar' : 'Cambiar contraseña'}
                       </button>
@@ -595,10 +743,16 @@ const PerfilUsuario = () => {
                           />
                         </div>
 
-                        <div className="flex justify-end">
+                        <div className="flex justify-end space-x-3">
+                          <button
+                            onClick={() => setIsChangingPassword(false)}
+                            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                          >
+                            Cancelar
+                          </button>
                           <button
                             onClick={handleChangePassword}
-                            className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                            className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                           >
                             🔐 Cambiar contraseña
                           </button>
@@ -627,7 +781,7 @@ const PerfilUsuario = () => {
                           <p className="font-medium text-gray-900">Autenticación de dos factores</p>
                           <p className="text-sm text-gray-600">Añade una capa adicional de seguridad</p>
                         </div>
-                        <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">
+                        <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm transition-colors">
                           Activar
                         </button>
                       </div>
@@ -637,7 +791,7 @@ const PerfilUsuario = () => {
                           <p className="font-medium text-gray-900">Sesiones activas</p>
                           <p className="text-sm text-gray-600">3 dispositivos conectados</p>
                         </div>
-                        <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm">
+                        <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm transition-colors">
                           Gestionar
                         </button>
                       </div>
@@ -647,7 +801,7 @@ const PerfilUsuario = () => {
                           <p className="font-medium text-gray-900">Historial de inicios de sesión</p>
                           <p className="text-sm text-gray-600">Último acceso: Hoy 14:30</p>
                         </div>
-                        <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm">
+                        <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm transition-colors">
                           Ver
                         </button>
                       </div>
@@ -673,12 +827,12 @@ const PerfilUsuario = () => {
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold text-gray-900">📜 Historial de actividad reciente</h3>
                   <div className="flex space-x-2">
-                    <select className="px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                    <select className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                       <option>Últimos 7 días</option>
                       <option>Últimos 30 días</option>
                       <option>Últimos 3 meses</option>
                     </select>
-                    <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">
+                    <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm transition-colors">
                       Exportar
                     </button>
                   </div>
@@ -705,7 +859,7 @@ const PerfilUsuario = () => {
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
                         {historialActividad.map((actividad) => (
-                          <tr key={actividad.id} className="hover:bg-gray-50">
+                          <tr key={actividad.id} className="hover:bg-gray-50 transition-colors">
                             <td className="px-6 py-4">
                               <p className="text-sm text-gray-900">{actividad.fecha}</p>
                             </td>
@@ -728,7 +882,7 @@ const PerfilUsuario = () => {
                 </div>
 
                 <div className="flex justify-center">
-                  <button className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
+                  <button className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
                     Cargar más actividades
                   </button>
                 </div>

@@ -29,6 +29,32 @@ export interface UserFormData {
   activo?: boolean;
 }
 
+
+// Agrega estos tipos si no los tienes en core.types.ts
+
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  token: string;
+  user: User;
+}
+
+// También asegúrate de que ApiResponse esté definido:
+export interface ApiResponse<T = any> {
+  success: boolean;
+  message: string;
+  data?: T;
+  error?: string;
+  timestamp: string;
+  page?: number;
+  totalPages?: number;
+  totalItems?: number;
+}
+
+
 // ==================== ENTIDADES ====================
 export interface Entity {
   id: string;
@@ -215,3 +241,33 @@ export const EstadoColor = {
   VENCIDO: 'bg-red-100 text-red-800',
   ARCHIVADO: 'bg-gray-100 text-gray-800',
 } as const;
+
+
+
+// En core.types.ts, agrega:
+export interface Notification {
+  id: string;
+  tipo: NotificationType;
+  titulo: string;
+  mensaje: string;
+  fecha: string;
+  leida: boolean;
+  urgente: boolean;
+  usuarioId: string;
+  correoId?: string;
+  entidadId?: string;
+  userId?: string; // Usuario relacionado (ej: quien asignó)
+  accion?: string; // Ruta a la que navegar
+  metadata?: Record<string, any>;
+}
+
+export type NotificationType = 
+  | 'ASIGNACION' 
+  | 'VENCIMIENTO' 
+  | 'REVISION' 
+  | 'APROBACION' 
+  | 'CORRECCION' 
+  | 'ENVIO' 
+  | 'ACUSE'
+  | 'SISTEMA'
+  | 'RECEPCION';

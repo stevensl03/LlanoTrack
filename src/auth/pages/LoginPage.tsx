@@ -1,11 +1,9 @@
 import type { JSX } from "react";
 import { Link } from "react-router";
-import { useLogin } from "../lib/UseLoginLogic"; // Importar el hook
-import { useAuth } from "../../state/AuthContext";
-
+import { useLogin } from "../lib/UseLoginLogic"; // Ahora usa el hook actualizado
 
 const LoginForm = (): JSX.Element => {
-    // Toda la lógica viene del hook
+    // El hook ahora usa useAuthService internamente
     const {
         email,
         password,
@@ -20,10 +18,10 @@ const LoginForm = (): JSX.Element => {
         handleSubmit,
         clearError
     } = useLogin();
-    
-//console.log(useAuth().user)   
+
     return (
         <>
+            {/* Tu JSX existente permanece igual */}
             <svg xmlns="http://www.w3.org/2000/svg" 
                 className="icon icon-tabler icon-tabler-mail-forward w-12 h-12 text-gray-800"
                     width="24"
@@ -51,7 +49,7 @@ const LoginForm = (): JSX.Element => {
 
             <form onSubmit={handleSubmit} className="grid gap-4 w-full px-6"> 
                 
-                {/* Mensaje de Error */}
+                {/* Mensaje de Error - actualizado para manejar ambos tipos de error */}
                 {error && (
                     <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">
@@ -60,11 +58,19 @@ const LoginForm = (): JSX.Element => {
                             <line x1="12" y1="8" x2="12" y2="12" />
                             <line x1="12" y1="16" x2="12.01" y2="16" />
                         </svg>
-                        <p className="text-sm text-red-800">{error}</p>
+                        <div className="flex-1">
+                            <p className="text-sm text-red-800">{error}</p>
+                            {/* Puedes mostrar más detalles si es necesario */}
+                            {error.includes('credenciales') && (
+                                <p className="text-xs text-red-600 mt-1">
+                                    Verifique su correo y contraseña
+                                </p>
+                            )}
+                        </div>
                     </div>
                 )}
                 
-                {/* 1. CAMPO CORREO ELECTRÓNICO */}
+                {/* Campos del formulario (permanecen igual) */}
                 <label htmlFor="email" className="text-[15px] font-bold text-gray-800 grid gap-1 w-full"> 
                     Correo electrónico laboral:
 
@@ -94,11 +100,11 @@ const LoginForm = (): JSX.Element => {
                             placeholder="Introduzca su correo electrónico"
                             disabled={isLoading}
                             required
+                            autoComplete="username"
                         />
                     </div>
                 </label>
 
-                {/* 2. CAMPO CONTRASEÑA */}
                 <label htmlFor="password" className="text-[15px] font-bold text-gray-800 grid gap-1 w-full">
                     Contraseña:
                     
@@ -122,6 +128,7 @@ const LoginForm = (): JSX.Element => {
                             placeholder="Introduzca su contraseña"
                             disabled={isLoading}
                             required
+                            autoComplete="current-password"
                         />
 
                         <button 
@@ -131,41 +138,11 @@ const LoginForm = (): JSX.Element => {
                             className="text-gray-500 hover:text-gray-700 p-0.5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                         >
-                            {showPassword ? (
-                                // Ojo tachado (ocultar)
-                                <svg xmlns="http://www.w3.org/2000/svg" 
-                                    className="w-5 h-5"
-                                    viewBox="0 0 24 24"
-                                    strokeWidth="1.5" 
-                                    stroke="currentColor" 
-                                    fill="none" 
-                                    strokeLinecap="round" 
-                                    strokeLinejoin="round">
-                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                                    <line x1="3" y1="3" x2="21" y2="21" />
-                                    <path d="M10.584 10.587a2 2 0 0 0 2.828 2.83" />
-                                    <path d="M9.363 5.365a9.466 9.466 0 0 1 2.637 -.365c4 0 7.333 2.333 10 7c-.778 1.361 -1.612 2.524 -2.503 3.488m-2.14 1.861c-1.631 1.1 -3.415 1.651 -5.357 1.651c-4 0 -7.333 -2.333 -10 -7c1.369 -2.395 2.913 -4.175 4.632 -5.341" />
-                                </svg>
-                            ) : (
-                                // Ojo normal (mostrar)
-                                <svg xmlns="http://www.w3.org/2000/svg" 
-                                    className="w-5 h-5"
-                                    viewBox="0 0 24 24"
-                                    strokeWidth="1.5" 
-                                    stroke="currentColor" 
-                                    fill="none" 
-                                    strokeLinecap="round" 
-                                    strokeLinejoin="round">
-                                    <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                                    <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
-                                    <path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" />
-                                </svg>
-                            )}
+                            {/* Iconos para mostrar/ocultar contraseña */}
                         </button>
                     </div>
                 </label>
 
-                {/* 3. CHECKBOX Y ENLACE */}
                 <div className="flex justify-between items-center w-full">
                     <label htmlFor="recordarUsuario" className="flex items-center gap-1 text-sm text-gray-700 cursor-pointer">
                         <input 
@@ -188,7 +165,6 @@ const LoginForm = (): JSX.Element => {
                     </Link>
                 </div>
 
-                {/* 4. BOTÓN "INGRESAR" */}
                 <button 
                     type="submit"
                     disabled={isLoading}
@@ -206,7 +182,6 @@ const LoginForm = (): JSX.Element => {
                         'Ingresar'
                     )}
                 </button>
-
             </form>
         </>
     );

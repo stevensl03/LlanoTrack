@@ -2,7 +2,7 @@ import type {
   User, Entity, RequestType, Correo, FlujoCorreo,
   DashboardMetrics, FilterParams, ApiResponse,
   UserFormData, EntityFormData, RequestTypeFormData,
-  CorreoEstado, UrgencyLevel
+  CorreoEstado, UrgencyLevel, Notification, NotificationType
 } from '../shared/types/core.types';
 import { mockData } from '../shared/lib/mockData';
 
@@ -19,6 +19,7 @@ class MockService {
 
     const user = mockData.users.find(u => u.email === email && u.activo);
 
+    console.log('Mock login:', email, password, user?.email);
     if (!user) {
         return {
         success: false,
@@ -59,6 +60,8 @@ class MockService {
     };
     }
 
+
+    
 
   // ==================== USUARIOS ====================
   async getUsers(searchTerm?: string): Promise<ApiResponse<User[]>> {
@@ -558,6 +561,359 @@ class MockService {
   getAuthToken(): string | null {
     return 'mock-jwt-token';
   }
+  // En mockService.ts, modifica generateNotifications:
+  generateNotifications(): Notification[] {
+  const notifications: Notification[] = [];
+  let idCounter = 1;
+  
+  // Usar usuarios reales como base
+  const currentUserId = '8'; // Sofía Vargas (admin) o el usuario actual
+  
+  // 1. Notificaciones de RECEPCIÓN (basadas en correos con estado RECEPCION)
+  mockData.correos
+    .filter(correo => correo.estado === 'RECEPCION')
+    .forEach(correo => {
+      const tipoSolicitud = mockData.requestTypes.find(t => t.id === correo.tipoSolicitudId);
+      
+      notifications.push({
+        id: `notif-${idCounter++}`,
+        tipo: 'RECEPCION',
+        titulo: `Nuevo ${tipoSolicitud?.tipo || 'documento'} recibido`,
+        mensaje: `${correo.entidadNombre} - ${correo.asunto}. Radicado: ${correo.radicadoEntrada}`,
+        fecha: correo.fechaRecepcion,
+        leida: Math.random() > 0.3, // 70% no leídas
+        urgente: correo.diasRestantes < 2,
+        usuarioId: correo.gestorId || currentUserId,
+        correoId: correo.id,
+        accion: `/correos/${correo.id}`,
+        metadata: {
+          radicado: correo.radicadoEntrada,
+          entidad: correo.entidadNombre,
+          diasRestantes: correo.diasRestantes
+        }
+      });
+    });
+  
+  // 2. Notificaciones de ASIGNACIÓN (correos con gestor asignado)
+  mockData.correos
+    .filter(correo => correo.gestorId && correo.estado === 'ELABORACION')
+    .forEach(correo => {
+      const gestor = mockData.users.find(u => u.id === correo.gestorId);
+      const entidad = mockData.entities.find(e => e.id === correo.entidadId);
+      
+      notifications.push({
+        id: `notif-${idCounter++}`,
+        tipo: 'ASIGNACION',
+        titulo: 'Correo asignado para elaboración',
+        mensaje: `${correo.radicadoEntrada} - ${correo.asunto}. Asignado a: ${gestor?.nombre}`,
+        fecha: correo.updatedAt,
+        leida: false,
+        urgente: correo.diasRestantes < 3,
+        usuarioId: correo.gestorId || currentUserId,
+        correoId: correo.id,
+        accion: `/correos/${correo.id}`,
+        metadata: {
+          radicado: correo.radicadoEntrada,
+          gestor: gestor?.nombre,
+          entidad: entidad?.nombre
+        }
+      });
+    });
+  
+  // 3. Notificaciones de VENCIMIENTO (basadas en días restantes REALES)
+  mockData.correos
+    .filter(correo => 
+      correo.diasRestantes < 5 && 
+      correo.diasRestantes >= 0 &&
+      correo.estado !== 'ENVIADO' && 
+      correo.estado !== 'ARCHIVADO'
+    )
+    .forEach(correo => {
+      const tipoSolicitud = mockData.requestTypes.find(t => t.id === correo.tipoSolicitudId);
+      const diasTexto = correo.diasRestantes === 0 ? 'HOY' : `en ${correo.diasRestantes} días`;
+      
+      notifications.push({
+        id: `notif-${idCounter++}`,
+        tipo: 'VENCIMIENTO',
+        titulo: `${tipoSolicitud?.tipo || 'Documento'} por vencer`,
+        mensaje: `${correo.radicadoEntrada} vence ${diasTexto}. Entidad: ${correo.entidadNombre}`,
+        fecha: new Date(Date.now() - Math.random() * 2 * 24 * 60 * 60 * 1000).toISOString(),
+        leida: Math.random() > 0.5,
+        urgente: correo.diasRestantes < 2,
+        usuarioId: correo.gestorId || currentUserId,
+        correoId: correo.id,
+        accion: `/correos/${correo.id}`,
+        metadata: {
+          radicado: correo.radicadoEntrada,
+          fechaVencimiento: correo.fechaVencimiento,
+          diasRestantes: correo.diasRestantes
+        }
+      });
+    });
+  
+  // 4. Notificaciones de REVISIÓN (basadas en flujos REALES)
+  mockData.flujos
+    .filter(flujo => flujo.etapa === 'REVISION' && flujo.usuarioId)
+    .forEach(flujo => {
+      const correo = mockData.correos.find(c => c.id === flujo.correoId);
+      const revisor = mockData.users.find(u => u.id === flujo.usuarioId);
+      
+      if (correo) {
+        notifications.push({
+          id: `notif-${idCounter++}`,
+          tipo: 'REVISION',
+          titulo: 'Documento pendiente de revisión',
+          mensaje: `${correo.radicadoEntrada} - ${correo.asunto}. Asignado a: ${revisor?.nombre}`,
+          fecha: flujo.fechaInicio,
+          leida: !!flujo.fechaFin, // Si ya tiene fecha fin, está leída
+          urgente: correo.diasRestantes < 3,
+          usuarioId: flujo.usuarioId!,
+          correoId: correo.id,
+          accion: `/correos/${correo.id}`,
+          metadata: {
+            radicado: correo.radicadoEntrada,
+            etapa: flujo.etapa,
+            duracion: flujo.duracion
+          }
+        });
+      }
+    });
+  
+  // 5. Notificaciones de APROBACIÓN (basadas en flujos REALES)
+  mockData.flujos
+    .filter(flujo => flujo.etapa === 'APROBACION' && flujo.usuarioId)
+    .forEach(flujo => {
+      const correo = mockData.correos.find(c => c.id === flujo.correoId);
+      const aprobador = mockData.users.find(u => u.id === flujo.usuarioId);
+      
+      if (correo) {
+        notifications.push({
+          id: `notif-${idCounter++}`,
+          tipo: 'APROBACION',
+          titulo: 'Documento pendiente de aprobación',
+          mensaje: `${correo.radicadoEntrada} - ${correo.asunto}. Asignado a: ${aprobador?.nombre}`,
+          fecha: flujo.fechaInicio,
+          leida: !!flujo.fechaFin,
+          urgente: correo.diasRestantes < 2,
+          usuarioId: flujo.usuarioId!,
+          correoId: correo.id,
+          accion: `/correos/${correo.id}`,
+          metadata: {
+            radicado: correo.radicadoEntrada,
+            etapa: flujo.etapa
+          }
+        });
+      }
+    });
+  
+  // 6. Notificaciones de ENVÍO (correos con radicado de salida)
+  mockData.correos
+    .filter(correo => correo.radicadoSalida && correo.estado === 'ENVIADO')
+    .forEach(correo => {
+      const tipoSolicitud = mockData.requestTypes.find(t => t.id === correo.tipoSolicitudId);
+      
+      notifications.push({
+        id: `notif-${idCounter++}`,
+        tipo: 'ENVIO',
+        titulo: `${tipoSolicitud?.tipo || 'Documento'} enviado`,
+        mensaje: `${correo.radicadoEntrada} ha sido enviado a ${correo.entidadNombre}. Radicado salida: ${correo.radicadoSalida}`,
+        fecha: correo.updatedAt,
+        leida: true,
+        urgente: false,
+        usuarioId: correo.gestorId || currentUserId,
+        correoId: correo.id,
+        accion: `/correos/${correo.id}`,
+        metadata: {
+          radicadoEntrada: correo.radicadoEntrada,
+          radicadoSalida: correo.radicadoSalida,
+          entidad: correo.entidadNombre
+        }
+      });
+    });
+  
+  // 7. Notificaciones de VENCIDOS (estado real)
+  mockData.correos
+    .filter(correo => correo.estado === 'VENCIDO')
+    .forEach(correo => {
+      notifications.push({
+        id: `notif-${idCounter++}`,
+        tipo: 'VENCIMIENTO',
+        titulo: 'Documento VENCIDO',
+        mensaje: `${correo.radicadoEntrada} ha vencido. Entidad: ${correo.entidadNombre}`,
+        fecha: correo.fechaVencimiento,
+        leida: false,
+        urgente: true,
+        usuarioId: correo.gestorId || currentUserId,
+        correoId: correo.id,
+        accion: `/correos/${correo.id}`,
+        metadata: {
+          radicado: correo.radicadoEntrada,
+          fechaVencimiento: correo.fechaVencimiento,
+          estado: 'VENCIDO'
+        }
+      });
+    });
+  
+  // 8. Notificaciones del SISTEMA (basadas en datos REALES)
+  // Estadísticas del dashboard
+  const hoy = new Date().toISOString().split('T')[0];
+  const correosHoy = mockData.correos.filter(c => 
+    c.fechaRecepcion.split('T')[0] === hoy
+  ).length;
+  
+  const correosVencidos = mockData.correos.filter(c => c.estado === 'VENCIDO').length;
+  
+  if (correosHoy > 0) {
+    notifications.push({
+      id: `notif-${idCounter++}`,
+      tipo: 'SISTEMA',
+      titulo: 'Resumen diario',
+      mensaje: `Hoy has recibido ${correosHoy} nuevos correos. ${correosVencidos} documentos vencidos pendientes.`,
+      fecha: new Date().toISOString(),
+      leida: false,
+      urgente: correosVencidos > 5,
+      usuarioId: currentUserId,
+      accion: '/dashboard',
+      metadata: {
+        correosHoy,
+        correosVencidos,
+        fecha: hoy
+      }
+    });
+  }
+  
+  // Notificación de actividad reciente
+  const usuarioActividad = mockData.users.find(u => u.id === currentUserId);
+  if (usuarioActividad) {
+    const fechaActualizacion = new Date(usuarioActividad.updatedAt);
+    const diasDesdeActualizacion = Math.floor(
+      (Date.now() - fechaActualizacion.getTime()) / (1000 * 60 * 60 * 24)
+    );
+    
+    if (diasDesdeActualizacion > 7) {
+      notifications.push({
+        id: `notif-${idCounter++}`,
+        tipo: 'SISTEMA',
+        titulo: 'Actualización de perfil pendiente',
+        mensaje: `Tu perfil no se actualiza desde hace ${diasDesdeActualizacion} días. Revisa tu información.`,
+        fecha: new Date().toISOString(),
+        leida: false,
+        urgente: false,
+        usuarioId: currentUserId,
+        accion: '/perfil',
+        metadata: {
+          ultimaActualizacion: usuarioActividad.updatedAt,
+          diasDesdeActualizacion
+        }
+      });
+    }
+  }
+  
+  return notifications;
+};
+// En MockService class, después de generateNotifications(), agrega:
+
+// ==================== NOTIFICACIONES ====================
+async getNotifications(userId?: string): Promise<ApiResponse<Notification[]>> {
+  await delay(500);
+  
+  const notifications = this.generateNotifications();
+  
+  // Filtrar por usuario si se especifica
+  let filteredNotifications = notifications;
+  if (userId && userId !== 'all') {
+    filteredNotifications = notifications.filter(
+      n => n.usuarioId === userId || n.usuarioId === 'all'
+    );
+  }
+  
+  return {
+    success: true,
+    data: filteredNotifications,
+    message: 'Notificaciones obtenidas exitosamente',
+    timestamp: new Date().toISOString(),
+  };
+}
+
+async getNotificationStats(userId?: string): Promise<ApiResponse<{
+  total: number;
+  unread: number;
+  urgent: number;
+  byType: Record<string, number>;
+}>> {
+  await delay(300);
+  
+  const notifications = this.generateNotifications();
+  
+  // Filtrar por usuario
+  let filteredNotifications = notifications;
+  if (userId && userId !== 'all') {
+    filteredNotifications = notifications.filter(
+      n => n.usuarioId === userId || n.usuarioId === 'all'
+    );
+  }
+  
+  const unread = filteredNotifications.filter(n => !n.leida).length;
+  const urgent = filteredNotifications.filter(n => n.urgente).length;
+  
+  const byType: Record<string, number> = {};
+  filteredNotifications.forEach(n => {
+    byType[n.tipo] = (byType[n.tipo] || 0) + 1;
+  });
+  
+  return {
+    success: true,
+    data: {
+      total: filteredNotifications.length,
+      unread,
+      urgent,
+      byType,
+    },
+    message: 'Estadísticas obtenidas',
+    timestamp: new Date().toISOString(),
+  };
+}
+
+async markNotificationAsRead(id: string): Promise<ApiResponse<{ id: string; leida: boolean }>> {
+  await delay(300);
+  
+  // Simulación - en realidad necesitarías modificar mockData
+  return {
+    success: true,
+    message: 'Notificación marcada como leída',
+    data: { id, leida: true },
+    timestamp: new Date().toISOString(),
+  };
+}
+
+async markAllNotificationsAsRead(userId: string): Promise<ApiResponse<{ updated: number }>> {
+  await delay(500);
+  
+  // Contar cuántas notificaciones no leídas tiene el usuario
+  const notifications = this.generateNotifications();
+  const userNotifications = notifications.filter(
+    n => n.usuarioId === userId || n.usuarioId === 'all'
+  );
+  const unreadCount = userNotifications.filter(n => !n.leida).length;
+  
+  return {
+    success: true,
+    data: { updated: unreadCount },
+    message: `${unreadCount} notificaciones marcadas como leídas`,
+    timestamp: new Date().toISOString(),
+  };
+}
+
+async deleteNotification(id: string): Promise<ApiResponse<{ deleted: boolean }>> {
+  await delay(300);
+  
+  return {
+    success: true,
+    data: { deleted: true },
+    message: 'Notificación eliminada',
+    timestamp: new Date().toISOString(),
+  };
+}
 }
 
 export const mockService = new MockService();

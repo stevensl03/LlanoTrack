@@ -13,9 +13,9 @@ type AppContextType = {
 
 type AuthContextType = {
     user: {
-        nombres: string;
+        nombre: string;
         email: string;
-        roleName: string;
+        rol: string;
     } | null;
     logout: () => void;
 }

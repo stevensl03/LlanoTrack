@@ -5,7 +5,7 @@ const HeaderShowNavigator = ({ showAll, setShowAll, user }: {
   showAll: boolean; 
   setShowAll: (v: boolean) => void 
   user: {
-    roleName: string;
+    rol: string;
   } | null;
 }) => {
   const { currentPageTitle } = useApp();
@@ -28,7 +28,7 @@ const HeaderShowNavigator = ({ showAll, setShowAll, user }: {
         <div className="flex items-center gap-3">
           {user && (
             <>
-              <span className="text-gray-600">{user.roleName}</span>
+              <span className="text-gray-600">{user.rol}</span>
             </>
           )}
         </div>

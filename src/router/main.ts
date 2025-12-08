@@ -25,11 +25,7 @@ export {default as PerfilUsuario} from "../shared/pages/common/PerfilUsuario";
 // Router
 export { ProtectedRoute } from "./ProtectedRoute";
 
-// Páginas de Tracking
-export { default as AdminPanelPage } from "../tracking/pages/AdminPanelPage";
-
 // Lazy Imports - Layouts
-export const TrackingLayout = lazy(() => import("../tracking/components/layout/TrackingLayout"));
 export const DashBoard = lazy(() => import("../tracking/pages/DashBoard"));
 export const AuditorLayout = lazy(() => import("../modules/auditor/components/layout/AuditorLayout"));
 

@@ -13,17 +13,15 @@ type AppContextType = {
 
 type AuthContextType = {
     user: {
-        nombres: string;
+        nombre: string;
         email: string;
-        roleName: string;
+        rol: string;
     } | null;
     logout: () => void;
 }
 
-
 const menuOptions = [
     { id: "dashboard", name: "Panel", path: "/auditor/dashboard", icon: "📧" },
-
 ]
 const footerOptions = [
     { id: "help", name: "Ayuda", path: "/auditor", icon: "❓" },

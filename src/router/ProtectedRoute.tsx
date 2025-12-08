@@ -9,7 +9,9 @@ interface ProtectedRouteProps {
 
 export const ProtectedRoute = ({ children, roles }: ProtectedRouteProps) => {
   const { isAuthenticated, user } = useAuth();
-  //console.log(user?.roleName)
+    //console.log(user?.rol)
+    console.log("Auth state:", { isAuthenticated, user }); 
+
 
   // 1️⃣ Validar si el usuario está autenticado
   if (!isAuthenticated) {
@@ -18,8 +20,8 @@ export const ProtectedRoute = ({ children, roles }: ProtectedRouteProps) => {
 
   // 2️⃣ Validar roles si fueron especificados
   if (roles && roles.length > 0) {
-    console.log(roles, user?.roleName)
-    if (!user?.roleName || !roles.includes(user.roleName)) {
+    console.log(roles, user?.rol)
+    if (!user?.rol || !roles.includes(user.rol)) {
       return <Navigate to="/not-found-404" replace />;
     }
   }

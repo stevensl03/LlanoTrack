@@ -1,119 +1,79 @@
 // pages/CentroNotificaciones.tsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
+import { useAuth } from '../../../state/AuthContext';
+import { useMockService } from '../../hooks/useMockService';
+import type { Notification } from '../../types/core.types';
 
 const CentroNotificaciones = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { 
+    getNotifications, 
+    getNotificationStats,
+    markNotificationAsRead,
+    markAllNotificationsAsRead,
+    deleteNotification 
+  } = useMockService();
   
-  // Estado para las notificaciones
-  const [notificaciones, setNotificaciones] = useState([
-    {
-      id: 1,
-      tipo: 'asignacion',
-      titulo: 'Nuevo correo asignado',
-      mensaje: 'Se te ha asignado el caso 2025-001-MH del Ministerio de Hacienda',
-      fecha: '2025-11-26 14:30',
-      leida: false,
-      urgente: true,
-      accion: '/gestor/caso/2025-001-MH',
-      icono: '📋'
-    },
-    {
-      id: 2,
-      tipo: 'vencimiento',
-      titulo: 'Caso por vencer',
-      mensaje: 'El caso 2025-045-PG vence en 2 días',
-      fecha: '2025-11-26 11:15',
-      leida: false,
-      urgente: true,
-      accion: '/gestor/caso/2025-045-PG',
-      icono: '⏰'
-    },
-    {
-      id: 3,
-      tipo: 'revision',
-      titulo: 'Documento pendiente de revisión',
-      mensaje: 'Jaime Tiuso ha enviado un documento para tu revisión',
-      fecha: '2025-11-25 16:45',
-      leida: true,
-      urgente: false,
-      accion: '/revisor/revisar/APR-001',
-      icono: '🔍'
-    },
-    {
-      id: 4,
-      tipo: 'aprobacion',
-      titulo: 'Documento aprobado',
-      mensaje: 'Carlos Ramírez ha aprobado el documento APR-002',
-      fecha: '2025-11-25 09:20',
-      leida: true,
-      urgente: false,
-      accion: '/gestor/caso/2025-002-MS',
-      icono: '✅'
-    },
-    {
-      id: 5,
-      tipo: 'correccion',
-      titulo: 'Correcciones solicitadas',
-      mensaje: 'El revisor ha solicitado correcciones en el documento REV-045',
-      fecha: '2025-11-24 15:10',
-      leida: true,
-      urgente: false,
-      accion: '/gestor/correcciones/REV-045',
-      icono: '📝'
-    },
-    {
-      id: 6,
-      tipo: 'sistema',
-      titulo: 'Actualización del sistema',
-      mensaje: 'Nuevas funcionalidades disponibles en el panel de seguimiento',
-      fecha: '2025-11-23 10:30',
-      leida: true,
-      urgente: false,
-      accion: '/actualizaciones',
-      icono: '🔄'
-    },
-    {
-      id: 7,
-      tipo: 'envio',
-      titulo: 'Documento enviado',
-      mensaje: 'El caso 2025-043-MH ha sido enviado a la entidad',
-      fecha: '2025-11-22 13:45',
-      leida: true,
-      urgente: false,
-      accion: '/seguimiento/caso/2025-043-MH',
-      icono: '📤'
-    },
-    {
-      id: 8,
-      tipo: 'acuse',
-      titulo: 'Acuse de recibo recibido',
-      mensaje: 'El Ministerio de Hacienda ha confirmado recepción del documento',
-      fecha: '2025-11-21 08:15',
-      leida: true,
-      urgente: false,
-      accion: '/integrador/acuse/2025-001-MH',
-      icono: '📨'
-    }
-  ]);
-
+  // Estado para las notificaciones REALES
+  const [notificaciones, setNotificaciones] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [processing, setProcessing] = useState<string | null>(null);
+  
   // Estado para filtros
-  const [filtro, setFiltro] = useState('todas'); // todas, no-leidas, urgentes, por-tipo
+  const [filtro, setFiltro] = useState('todas'); // todas, no-leidas, urgentes
   const [tipoFiltro, setTipoFiltro] = useState('todos'); // todos los tipos
   const [busqueda, setBusqueda] = useState('');
 
-  // Tipos de notificaciones
+  // Tipos de notificaciones REALES basados en tu generateNotifications
   const tipos = [
     { id: 'todos', nombre: 'Todos los tipos', icono: '📋' },
-    { id: 'asignacion', nombre: 'Asignaciones', icono: '📋' },
-    { id: 'vencimiento', nombre: 'Vencimientos', icono: '⏰' },
-    { id: 'revision', nombre: 'Revisiones', icono: '🔍' },
-    { id: 'aprobacion', nombre: 'Aprobaciones', icono: '✅' },
-    { id: 'correccion', nombre: 'Correcciones', icono: '📝' },
-    { id: 'envio', nombre: 'Envíos', icono: '📤' },
-    { id: 'acuse', nombre: 'Acuses', icono: '📨' },
-    { id: 'sistema', nombre: 'Sistema', icono: '🔄' }
+    { id: 'RECEPCION', nombre: 'Recepción', icono: '📥' },
+    { id: 'ASIGNACION', nombre: 'Asignaciones', icono: '👤' },
+    { id: 'VENCIMIENTO', nombre: 'Vencimientos', icono: '⏰' },
+    { id: 'REVISION', nombre: 'Revisiones', icono: '🔍' },
+    { id: 'APROBACION', nombre: 'Aprobaciones', icono: '✅' },
+    { id: 'ENVIO', nombre: 'Envíos', icono: '📤' },
+    { id: 'SISTEMA', nombre: 'Sistema', icono: '⚙️' }
   ];
+
+  // Estadísticas REALES
+  const [stats, setStats] = useState({
+    total: 0,
+    unread: 0,
+    urgent: 0,
+    today: 0
+  });
+
+  // Cargar notificaciones REALES
+  useEffect(() => {
+    const loadNotifications = async () => {
+      setLoading(true);
+      try {
+        const response = await getNotifications(user?.id);
+        if (response.success && response.data) {
+          setNotificaciones(response.data);
+        }
+        
+        const statsResponse = await getNotificationStats(user?.id);
+        if (statsResponse.success && statsResponse.data) {
+          setStats({
+            total: statsResponse.data.total,
+            unread: statsResponse.data.unread,
+            urgent: statsResponse.data.urgent,
+            today: calculateTodayNotifications(response.data || [])
+          });
+        }
+      } catch (error) {
+        console.error('Error cargando notificaciones:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadNotifications();
+  }, [user?.id]);
 
   // Filtrar notificaciones
   const notificacionesFiltradas = notificaciones.filter(notif => {
@@ -125,7 +85,8 @@ const CentroNotificaciones = () => {
     if (tipoFiltro !== 'todos' && notif.tipo !== tipoFiltro) return false;
     
     // Búsqueda
-    if (busqueda && !notif.titulo.toLowerCase().includes(busqueda.toLowerCase()) && 
+    if (busqueda && 
+        !notif.titulo.toLowerCase().includes(busqueda.toLowerCase()) && 
         !notif.mensaje.toLowerCase().includes(busqueda.toLowerCase())) {
       return false;
     }
@@ -133,52 +94,170 @@ const CentroNotificaciones = () => {
     return true;
   });
 
-  // Contadores
-  const noLeidas = notificaciones.filter(n => !n.leida).length;
-  const urgentes = notificaciones.filter(n => n.urgente).length;
-
-  // Funciones
-  const marcarComoLeida = (id: number) => {
-    setNotificaciones(prev => prev.map(n => 
-      n.id === id ? { ...n, leida: true } : n
-    ));
+  // Calcular notificaciones de hoy
+  const calculateTodayNotifications = (notifications: Notification[]) => {
+    const hoy = new Date().toISOString().split('T')[0];
+    return notifications.filter(n => n.fecha.split('T')[0] === hoy).length;
   };
 
-  const marcarTodasComoLeidas = () => {
-    setNotificaciones(prev => prev.map(n => ({ ...n, leida: true })));
+  // Funciones REALES usando la API
+  const marcarComoLeida = async (id: string) => {
+    setProcessing(id);
+    try {
+      const response = await markNotificationAsRead(id);
+      if (response.success) {
+        setNotificaciones(prev => prev.map(n => 
+          n.id === id ? { ...n, leida: true } : n
+        ));
+        setStats(prev => ({ ...prev, unread: Math.max(0, prev.unread - 1) }));
+      }
+    } catch (error) {
+      console.error('Error marcando notificación como leída:', error);
+    } finally {
+      setProcessing(null);
+    }
   };
 
-  const eliminarNotificacion = (id: number) => {
-    setNotificaciones(prev => prev.filter(n => n.id !== id));
+  const marcarTodasComoLeidas = async () => {
+    if (!user?.id) return;
+    
+    setProcessing('all');
+    try {
+      const response = await markAllNotificationsAsRead(user.id);
+      if (response.success) {
+        setNotificaciones(prev => prev.map(n => ({ ...n, leida: true })));
+        setStats(prev => ({ ...prev, unread: 0 }));
+      }
+    } catch (error) {
+      console.error('Error marcando todas como leídas:', error);
+    } finally {
+      setProcessing(null);
+    }
   };
 
-  const eliminarTodasLeidas = () => {
+  const eliminarNotificacion = async (id: string) => {
+    setProcessing(id);
+    try {
+      const response = await deleteNotification(id);
+      if (response.success) {
+        const notificacionAEliminar = notificaciones.find(n => n.id === id);
+        setNotificaciones(prev => prev.filter(n => n.id !== id));
+        
+        // Actualizar estadísticas
+        if (notificacionAEliminar) {
+          setStats(prev => ({
+            ...prev,
+            total: prev.total - 1,
+            unread: notificacionAEliminar.leida ? prev.unread : Math.max(0, prev.unread - 1),
+            urgent: notificacionAEliminar.urgente ? prev.urgent - 1 : prev.urgent,
+            today: notificacionAEliminar.fecha.startsWith(new Date().toISOString().split('T')[0]) 
+              ? prev.today - 1 
+              : prev.today
+          }));
+        }
+      }
+    } catch (error) {
+      console.error('Error eliminando notificación:', error);
+    } finally {
+      setProcessing(null);
+    }
+  };
+
+  const eliminarTodasLeidas = async () => {
+    const leidasAEliminar = notificaciones.filter(n => n.leida);
+    
+    // Eliminar una por una (en un sistema real sería batch)
+    for (const notif of leidasAEliminar) {
+      await deleteNotification(notif.id);
+    }
+    
+    // Actualizar estado local
     setNotificaciones(prev => prev.filter(n => !n.leida));
+    setStats(prev => ({
+      total: prev.total - leidasAEliminar.length,
+      unread: prev.unread,
+      urgent: prev.urgent - leidasAEliminar.filter(n => n.urgente).length,
+      today: prev.today - leidasAEliminar.filter(n => 
+        n.fecha.startsWith(new Date().toISOString().split('T')[0])
+      ).length
+    }));
   };
 
-  const handleAccionNotificacion = (notificacion: any) => {
-    // Marcar como leída
-    marcarComoLeida(notificacion.id);
+  const handleAccionNotificacion = async (notificacion: Notification) => {
+    // Marcar como leída si no lo está
+    if (!notificacion.leida) {
+      await marcarComoLeida(notificacion.id);
+    }
     
     // Navegar a la acción
     if (notificacion.accion) {
       navigate(notificacion.accion);
+    } else if (notificacion.correoId) {
+      navigate(`/correos/${notificacion.correoId}`);
     }
   };
 
   const getTipoColor = (tipo: string) => {
     switch (tipo) {
-      case 'asignacion': return 'bg-blue-100 text-blue-800';
-      case 'vencimiento': return 'bg-red-100 text-red-800';
-      case 'revision': return 'bg-yellow-100 text-yellow-800';
-      case 'aprobacion': return 'bg-green-100 text-green-800';
-      case 'correccion': return 'bg-orange-100 text-orange-800';
-      case 'envio': return 'bg-purple-100 text-purple-800';
-      case 'acuse': return 'bg-indigo-100 text-indigo-800';
-      case 'sistema': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'RECEPCION': return 'bg-blue-100 text-blue-800 border border-blue-200';
+      case 'ASIGNACION': return 'bg-green-100 text-green-800 border border-green-200';
+      case 'VENCIMIENTO': return 'bg-red-100 text-red-800 border border-red-200';
+      case 'REVISION': return 'bg-yellow-100 text-yellow-800 border border-yellow-200';
+      case 'APROBACION': return 'bg-purple-100 text-purple-800 border border-purple-200';
+      case 'ENVIO': return 'bg-indigo-100 text-indigo-800 border border-indigo-200';
+      case 'SISTEMA': return 'bg-gray-100 text-gray-800 border border-gray-200';
+      default: return 'bg-gray-100 text-gray-800 border border-gray-200';
     }
   };
+
+  const getTipoIcono = (tipo: string) => {
+    switch (tipo) {
+      case 'RECEPCION': return '📥';
+      case 'ASIGNACION': return '👤';
+      case 'VENCIMIENTO': return '⏰';
+      case 'REVISION': return '🔍';
+      case 'APROBACION': return '✅';
+      case 'ENVIO': return '📤';
+      case 'SISTEMA': return '⚙️';
+      default: return '📋';
+    }
+  };
+
+  const formatFecha = (fecha: string) => {
+    try {
+      const date = new Date(fecha);
+      const hoy = new Date();
+      const ayer = new Date(hoy);
+      ayer.setDate(ayer.getDate() - 1);
+      
+      if (date.toDateString() === hoy.toDateString()) {
+        return `Hoy ${date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`;
+      } else if (date.toDateString() === ayer.toDateString()) {
+        return `Ayer ${date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`;
+      } else {
+        return date.toLocaleDateString('es-ES', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      }
+    } catch {
+      return fecha;
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-4 md:p-6 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Cargando notificaciones...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6">
@@ -195,16 +274,19 @@ const CentroNotificaciones = () => {
             <div className="flex items-center space-x-3">
               <button 
                 onClick={() => navigate(-1)}
-                className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center"
+                className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center transition-colors"
               >
                 <span className="mr-2">←</span>
                 Volver
               </button>
               <div className="relative">
                 <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                  {noLeidas}
+                  {stats.unread}
                 </span>
-                <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                <button 
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  onClick={() => navigate('/perfil?tab=preferencias')}
+                >
                   ⚙️ Configurar
                 </button>
               </div>
@@ -212,13 +294,13 @@ const CentroNotificaciones = () => {
           </div>
         </div>
 
-        {/* Estadísticas rápidas */}
+        {/* Estadísticas rápidas REALES */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-white rounded-xl border border-gray-200 p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Total notificaciones</p>
-                <p className="text-2xl font-bold text-gray-900">{notificaciones.length}</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
               </div>
               <div className="p-3 bg-blue-50 rounded-lg">
                 <span className="text-2xl text-blue-600">📋</span>
@@ -230,7 +312,7 @@ const CentroNotificaciones = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">No leídas</p>
-                <p className="text-2xl font-bold text-red-600">{noLeidas}</p>
+                <p className="text-2xl font-bold text-red-600">{stats.unread}</p>
               </div>
               <div className="p-3 bg-red-50 rounded-lg">
                 <span className="text-2xl text-red-600">🔔</span>
@@ -242,7 +324,7 @@ const CentroNotificaciones = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Urgentes</p>
-                <p className="text-2xl font-bold text-yellow-600">{urgentes}</p>
+                <p className="text-2xl font-bold text-yellow-600">{stats.urgent}</p>
               </div>
               <div className="p-3 bg-yellow-50 rounded-lg">
                 <span className="text-2xl text-yellow-600">⚠️</span>
@@ -254,9 +336,7 @@ const CentroNotificaciones = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Hoy</p>
-                <p className="text-2xl font-bold text-green-600">
-                  {notificaciones.filter(n => n.fecha.startsWith('2025-11-26')).length}
-                </p>
+                <p className="text-2xl font-bold text-green-600">{stats.today}</p>
               </div>
               <div className="p-3 bg-green-50 rounded-lg">
                 <span className="text-2xl text-green-600">📅</span>
@@ -276,7 +356,7 @@ const CentroNotificaciones = () => {
               <div className="flex space-x-2">
                 <button
                   onClick={() => setFiltro('todas')}
-                  className={`flex-1 py-2 border rounded-lg text-sm ${
+                  className={`flex-1 py-2 border rounded-lg text-sm transition-colors ${
                     filtro === 'todas' 
                       ? 'border-blue-500 bg-blue-50 text-blue-700' 
                       : 'border-gray-300 hover:bg-gray-50'
@@ -286,23 +366,23 @@ const CentroNotificaciones = () => {
                 </button>
                 <button
                   onClick={() => setFiltro('no-leidas')}
-                  className={`flex-1 py-2 border rounded-lg text-sm ${
+                  className={`flex-1 py-2 border rounded-lg text-sm transition-colors ${
                     filtro === 'no-leidas' 
                       ? 'border-blue-500 bg-blue-50 text-blue-700' 
                       : 'border-gray-300 hover:bg-gray-50'
                   }`}
                 >
-                  No leídas ({noLeidas})
+                  No leídas ({stats.unread})
                 </button>
                 <button
                   onClick={() => setFiltro('urgentes')}
-                  className={`flex-1 py-2 border rounded-lg text-sm ${
+                  className={`flex-1 py-2 border rounded-lg text-sm transition-colors ${
                     filtro === 'urgentes' 
                       ? 'border-blue-500 bg-blue-50 text-blue-700' 
                       : 'border-gray-300 hover:bg-gray-50'
                   }`}
                 >
-                  Urgentes ({urgentes})
+                  Urgentes ({stats.urgent})
                 </button>
               </div>
             </div>
@@ -344,17 +424,34 @@ const CentroNotificaciones = () => {
           </div>
 
           {/* Acciones masivas */}
-          <div className="flex justify-between mt-6">
+          <div className="flex justify-between items-center mt-6">
             <div className="flex space-x-3">
               <button
                 onClick={marcarTodasComoLeidas}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm"
+                disabled={stats.unread === 0 || processing === 'all'}
+                className={`px-4 py-2 rounded-lg text-sm transition-colors flex items-center ${
+                  stats.unread === 0 || processing === 'all'
+                    ? 'bg-gray-400 text-white cursor-not-allowed'
+                    : 'bg-green-600 text-white hover:bg-green-700'
+                }`}
               >
-                ✅ Marcar todas como leídas
+                {processing === 'all' ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Procesando...
+                  </>
+                ) : (
+                  '✅ Marcar todas como leídas'
+                )}
               </button>
               <button
                 onClick={eliminarTodasLeidas}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm"
+                disabled={notificaciones.length === stats.unread || processing?.startsWith('delete')}
+                className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+                  notificaciones.length === stats.unread || processing?.startsWith('delete')
+                    ? 'bg-gray-400 text-white cursor-not-allowed'
+                    : 'bg-red-600 text-white hover:bg-red-700'
+                }`}
               >
                 🗑️ Eliminar leídas
               </button>
@@ -365,17 +462,29 @@ const CentroNotificaciones = () => {
           </div>
         </div>
 
-        {/* Lista de notificaciones */}
+        {/* Lista de notificaciones REALES */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
           {notificacionesFiltradas.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-4xl mb-4">🎉</div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">¡No hay notificaciones!</h3>
-              <p className="text-gray-600">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 {busqueda 
-                  ? 'No se encontraron notificaciones con esos criterios' 
-                  : 'Estás al día con todas tus notificaciones'}
+                  ? 'No se encontraron notificaciones' 
+                  : '¡No hay notificaciones!'}
+              </h3>
+              <p className="text-gray-600 mb-4">
+                {busqueda 
+                  ? 'Intenta con otros términos de búsqueda' 
+                  : 'Estás al día con todas tus notificaciones del sistema'}
               </p>
+              {busqueda && (
+                <button
+                  onClick={() => setBusqueda('')}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                >
+                  Limpiar búsqueda
+                </button>
+              )}
             </div>
           ) : (
             <div className="divide-y divide-gray-200">
@@ -392,36 +501,51 @@ const CentroNotificaciones = () => {
                       <div className={`h-12 w-12 rounded-lg flex items-center justify-center text-2xl ${
                         notificacion.urgente ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-600'
                       }`}>
-                        {notificacion.icono}
+                        {getTipoIcono(notificacion.tipo)}
                       </div>
                     </div>
 
                     {/* Contenido */}
                     <div className="flex-1">
-                      <div className="flex justify-between">
-                        <div>
-                          <div className="flex items-center space-x-2">
+                      <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
+                        <div className="flex-1">
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
                             <h3 className="font-semibold text-gray-900">
                               {notificacion.titulo}
                             </h3>
                             {!notificacion.leida && (
-                              <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                              <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full whitespace-nowrap">
                                 Nuevo
                               </span>
                             )}
                             {notificacion.urgente && (
-                              <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">
+                              <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full whitespace-nowrap">
                                 Urgente
                               </span>
                             )}
-                            <span className={`px-2 py-1 text-xs rounded-full ${getTipoColor(notificacion.tipo)}`}>
+                            <span className={`px-2 py-1 text-xs rounded-full whitespace-nowrap ${getTipoColor(notificacion.tipo)}`}>
                               {tipos.find(t => t.id === notificacion.tipo)?.nombre}
                             </span>
                           </div>
-                          <p className="text-gray-600 mt-1">{notificacion.mensaje}</p>
+                          <p className="text-gray-600 mb-2">{notificacion.mensaje}</p>
+                          
+                          {/* Metadata adicional si existe */}
+                          {notificacion.metadata && (
+                            <div className="text-xs text-gray-500 mt-2">
+                              {notificacion.metadata.radicado && (
+                                <span className="mr-3">📄 {notificacion.metadata.radicado}</span>
+                              )}
+                              {notificacion.metadata.diasRestantes !== undefined && (
+                                <span className="mr-3">⏱️ {notificacion.metadata.diasRestantes} días restantes</span>
+                              )}
+                            </div>
+                          )}
                         </div>
-                        <div className="text-right">
-                          <p className="text-sm text-gray-500">{notificacion.fecha}</p>
+                        
+                        <div className="text-right min-w-[140px]">
+                          <p className="text-sm text-gray-500 whitespace-nowrap">
+                            {formatFecha(notificacion.fecha)}
+                          </p>
                           {notificacion.leida ? (
                             <p className="text-xs text-gray-400 mt-1">Leída</p>
                           ) : (
@@ -431,29 +555,37 @@ const CentroNotificaciones = () => {
                       </div>
 
                       {/* Acciones */}
-                      <div className="flex justify-between items-center mt-4">
-                        <div className="flex space-x-3">
+                      <div className="flex flex-col md:flex-row md:justify-between md:items-center mt-4 gap-3">
+                        <div className="flex flex-wrap gap-2">
                           <button
                             onClick={() => handleAccionNotificacion(notificacion)}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm transition-colors whitespace-nowrap"
                           >
-                            Ver acción
+                            {notificacion.correoId ? 'Ver correo' : 'Ver detalles'}
                           </button>
                           {!notificacion.leida && (
                             <button
                               onClick={() => marcarComoLeida(notificacion.id)}
-                              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm"
+                              disabled={processing === notificacion.id}
+                              className={`px-4 py-2 border rounded-lg text-sm transition-colors whitespace-nowrap ${
+                                processing === notificacion.id
+                                  ? 'border-gray-300 text-gray-400 cursor-not-allowed'
+                                  : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                              }`}
                             >
-                              Marcar como leída
+                              {processing === notificacion.id ? 'Procesando...' : 'Marcar como leída'}
                             </button>
                           )}
                         </div>
                         <button
                           onClick={() => eliminarNotificacion(notificacion.id)}
-                          className="text-gray-400 hover:text-red-600"
+                          disabled={processing === notificacion.id}
+                          className={`text-gray-400 hover:text-red-600 transition-colors ${
+                            processing === notificacion.id ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
                           title="Eliminar notificación"
                         >
-                          🗑️
+                          {processing === notificacion.id ? '⏳' : '🗑️'}
                         </button>
                       </div>
                     </div>
@@ -469,28 +601,43 @@ const CentroNotificaciones = () => {
           <h3 className="text-lg font-semibold text-gray-900 mb-4">⚙️ Preferencias de notificaciones</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <button className="p-4 bg-white border border-blue-300 rounded-lg hover:bg-blue-50 flex flex-col items-center">
+            <button 
+              onClick={() => navigate('/perfil?tab=preferencias')}
+              className="p-4 bg-white border border-blue-300 rounded-lg hover:bg-blue-50 flex flex-col items-center transition-colors"
+            >
               <span className="text-2xl mb-2">📧</span>
               <span className="font-medium text-blue-900">Configurar email</span>
               <span className="text-xs text-gray-600 mt-1">Notificaciones por correo</span>
             </button>
             
-            <button className="p-4 bg-white border border-green-300 rounded-lg hover:bg-green-50 flex flex-col items-center">
+            <button 
+              onClick={() => navigate('/perfil?tab=preferencias')}
+              className="p-4 bg-white border border-green-300 rounded-lg hover:bg-green-50 flex flex-col items-center transition-colors"
+            >
               <span className="text-2xl mb-2">📱</span>
               <span className="font-medium text-green-900">Notificaciones push</span>
               <span className="text-xs text-gray-600 mt-1">Alertas en tiempo real</span>
             </button>
             
-            <button className="p-4 bg-white border border-purple-300 rounded-lg hover:bg-purple-50 flex flex-col items-center">
+            <button 
+              onClick={() => {
+                // Lógica para silenciar notificaciones temporalmente
+                alert('Funcionalidad en desarrollo: Silenciar notificaciones por 1 hora');
+              }}
+              className="p-4 bg-white border border-purple-300 rounded-lg hover:bg-purple-50 flex flex-col items-center transition-colors"
+            >
               <span className="text-2xl mb-2">🔕</span>
               <span className="font-medium text-purple-900">Silenciar temporalmente</span>
               <span className="text-xs text-gray-600 mt-1">Pausar notificaciones</span>
             </button>
             
-            <button className="p-4 bg-white border border-red-300 rounded-lg hover:bg-red-50 flex flex-col items-center">
+            <button 
+              onClick={() => navigate('/dashboard')}
+              className="p-4 bg-white border border-red-300 rounded-lg hover:bg-red-50 flex flex-col items-center transition-colors"
+            >
               <span className="text-2xl mb-2">📊</span>
               <span className="font-medium text-red-900">Reporte de actividad</span>
-              <span className="text-xs text-gray-600 mt-1">Historial de notificaciones</span>
+              <span className="text-xs text-gray-600 mt-1">Ver dashboard completo</span>
             </button>
           </div>
         </div>

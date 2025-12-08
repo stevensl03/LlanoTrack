@@ -3,7 +3,8 @@ import { mockService } from '../../services/mockService';
 import type { 
   User, Entity, RequestType, Correo, FlujoCorreo,
   DashboardMetrics, FilterParams, ApiResponse,
-  UserFormData, EntityFormData, RequestTypeFormData
+  UserFormData, EntityFormData, RequestTypeFormData,
+  LoginCredentials, LoginResponse, Notification, NotificationType
 } from '../types/core.types';
 
 export const useMockService = () => {
@@ -40,7 +41,30 @@ export const useMockService = () => {
     error,
     clearError: () => setError(null),
     
-    // Usuarios
+    // ==================== AUTENTICACIÓN ====================
+    login: useCallback((credentials: LoginCredentials) => 
+      handleApiCall(() => mockService.login(credentials.email, credentials.password)), []),
+
+    logout: useCallback(() => 
+      handleApiCall(() => mockService.logout()), []),
+
+    getCurrentUser: useCallback(() => 
+      handleApiCall(() => mockService.getCurrentUser()), []),
+
+    // Métodos de token
+    setAuthToken: useCallback((token: string) => {
+      mockService.setAuthToken(token);
+    }, []),
+
+    clearAuthToken: useCallback(() => {
+      mockService.clearAuthToken();
+    }, []),
+
+    getAuthToken: useCallback(() => {
+      return mockService.getAuthToken();
+    }, []),
+    
+    // ==================== USUARIOS ====================
     getUsers: useCallback((searchTerm?: string) => 
       handleApiCall(() => mockService.getUsers(searchTerm)), []),
 
@@ -53,7 +77,7 @@ export const useMockService = () => {
     deleteUser: useCallback((id: string) => 
       handleApiCall(() => mockService.deleteUser(id)), []),
     
-    // Entidades
+    // ==================== ENTIDADES ====================
     getEntities: useCallback((searchTerm?: string) => 
       handleApiCall(() => mockService.getEntities(searchTerm)), []),
 
@@ -66,7 +90,7 @@ export const useMockService = () => {
     deleteEntity: useCallback((id: string) => 
       handleApiCall(() => mockService.deleteEntity(id)), []),
     
-    // Tipos de Solicitud
+    // ==================== TIPOS DE SOLICITUD ====================
     getRequestTypes: useCallback((searchTerm?: string) => 
       handleApiCall(() => mockService.getRequestTypes(searchTerm)), []),
 
@@ -79,7 +103,7 @@ export const useMockService = () => {
     deleteRequestType: useCallback((id: string) => 
       handleApiCall(() => mockService.deleteRequestType(id)), []),
     
-    // Dashboard
+    // ==================== DASHBOARD Y MÉTRICAS ====================
     getDashboardMetrics: useCallback((filters?: Partial<FilterParams>) => 
       handleApiCall(() => mockService.getDashboardMetrics(filters)), []),
 
@@ -92,15 +116,59 @@ export const useMockService = () => {
     getFlujosByCorreoId: useCallback((correoId: string) => 
       handleApiCall(() => mockService.getFlujosByCorreoId(correoId)), []),
     
-    // Filtros
+    // ==================== FILTROS ====================
     getAvailableFilters: useCallback(() => 
       handleApiCall(() => mockService.getAvailableFilters()), []),
     
-    // Exportación
+    // ==================== EXPORTACIÓN ====================
     exportToExcel: useCallback((filters?: FilterParams) => 
       handleApiCall(() => mockService.exportToExcel(filters)), []),
 
     exportToPDF: useCallback((filters?: FilterParams) => 
       handleApiCall(() => mockService.exportToPDF(filters)), []),
+
+        // ==================== NOTIFICACIONES ====================
+    getNotifications: useCallback((userId?: string) => 
+      handleApiCall(() => mockService.getNotifications(userId)), []),
+
+    getNotificationStats: useCallback((userId?: string) => 
+      handleApiCall(() => mockService.getNotificationStats(userId)), []),
+
+    markNotificationAsRead: useCallback((id: string) => 
+      handleApiCall(() => mockService.markNotificationAsRead(id)), []),
+
+    markAllNotificationsAsRead: useCallback((userId: string) => 
+      handleApiCall(() => mockService.markAllNotificationsAsRead(userId)), []),
+
+    deleteNotification: useCallback((id: string) => 
+      handleApiCall(() => mockService.deleteNotification(id)), []),
+
+    createTestNotification: useCallback((notification: Partial<Notification>) => 
+      handleApiCall(async () => {
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        const newNotification: Notification = {
+          id: `test-${Date.now()}`,
+          tipo: notification.tipo || 'SISTEMA',
+          titulo: notification.titulo || 'Notificación de prueba',
+          mensaje: notification.mensaje || 'Esta es una notificación de prueba',
+          fecha: new Date().toISOString(),
+          leida: false,
+          urgente: notification.urgente || false,
+          usuarioId: notification.usuarioId || 'current-user',
+          correoId: notification.correoId,
+          entidadId: notification.entidadId,
+          userId: notification.userId,
+          accion: notification.accion,
+          metadata: notification.metadata
+        };
+        
+        return {
+          success: true,
+          data: newNotification,
+          message: 'Notificación de prueba creada',
+          timestamp: new Date().toISOString(),
+        };
+      }), []),
   };
 };
