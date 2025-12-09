@@ -1,5 +1,5 @@
 // ==================== ROLES Y USUARIOS ====================
-export type UserRole = 'INTEGRADOR' | 'GESTOR' | 'REVISOR' | 'APROBADOR' | 'AUDITOR' | 'ADMIN';
+export type UserRole = 'INTEGRADOR' | 'GESTOR' | 'REVISOR' | 'APROBADOR' | 'auditor' | 'admin';
 
 export interface User {
   id: string;
@@ -241,8 +241,6 @@ export const EstadoColor = {
   VENCIDO: 'bg-red-100 text-red-800',
   ARCHIVADO: 'bg-gray-100 text-gray-800',
 } as const;
-
-
 
 // En core.types.ts, agrega:
 export interface Notification {

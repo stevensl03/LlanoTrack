@@ -9,10 +9,10 @@ export const mockUsers: User[] = [
   { id: '2', nombre: 'María López', email: 'maria@llano.com', rol: 'REVISOR', area: 'Administración', activo: true, createdAt: '2024-01-10', updatedAt: '2024-01-10', telefono: '3002345678', departamento: 'Calidad' },
   { id: '3', nombre: 'Carlos Ramírez', email: 'carlos@llano.com', rol: 'APROBADOR', area: 'Gerencia', activo: true, createdAt: '2024-01-05', updatedAt: '2024-01-05', telefono: '3003456789', departamento: 'Gerencia' },
   { id: '4', nombre: 'Ana García', email: 'ana@llano.com', rol: 'INTEGRADOR', area: 'Recepción', activo: true, createdAt: '2024-01-01', updatedAt: '2024-01-01', telefono: '3004567890', departamento: 'Recepción' },
-  { id: '5', nombre: 'Pedro Martínez', email: 'pedro@llano.com', rol: 'AUDITOR', area: 'Auditoría', activo: true, createdAt: '2024-01-20', updatedAt: '2024-01-20', telefono: '3005678901', departamento: 'Auditoría' },
+  { id: '5', nombre: 'Pedro Martínez', email: 'pedro@llano.com', rol: 'auditor', area: 'Auditoría', activo: true, createdAt: '2024-01-20', updatedAt: '2024-01-20', telefono: '3005678901', departamento: 'Auditoría' },
   { id: '6', nombre: 'Luisa Fernández', email: 'luisa@llano.com', rol: 'GESTOR', area: 'Técnica', activo: true, createdAt: '2024-01-18', updatedAt: '2024-01-18', telefono: '3006789012', departamento: 'Ingeniería' },
   { id: '7', nombre: 'Roberto Sánchez', email: 'roberto@llano.com', rol: 'REVISOR', area: 'Legal', activo: false, createdAt: '2024-01-12', updatedAt: '2024-01-25', telefono: '3007890123', departamento: 'Legal' },
-  { id: '8', nombre: 'Sofía Vargas', email: 'admin@entidad1.com', rol: 'ADMIN', area: 'Sistemas', activo: true, createdAt: '2024-01-03', updatedAt: '2024-01-03', telefono: '3008901234', departamento: 'TI' },
+  { id: '8', nombre: 'Sofía Vargas', email: 'admin@entidad1.com', rol: 'admin', area: 'Sistemas', activo: true, createdAt: '2024-01-03', updatedAt: '2024-01-03', telefono: '3008901234', departamento: 'TI' },
 ];
 
 // Datos de entidades

@@ -73,7 +73,7 @@ const AppRouter = () => {
         <Route
           path="/admin"
           element={
-            <ProtectedRoute roles={["ADMIN"]}>
+            <ProtectedRoute roles={["admin"]}>
               <Suspense fallback={<SpinnerCircule />}>
                 <AdminLayout />
               </Suspense>
@@ -92,7 +92,7 @@ const AppRouter = () => {
         <Route
           path="/auditor"
           element={
-            <ProtectedRoute roles={["ADMIN", "AUDITOR"]}>
+            <ProtectedRoute roles={["admin", "auditor"]}>
               <Suspense fallback={<SpinnerCircule />}>
                 <AuditorLayout />
               </Suspense>

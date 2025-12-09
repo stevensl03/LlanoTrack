@@ -16,17 +16,17 @@ const CentroNotificaciones = () => {
     deleteNotification 
   } = useMockService();
   
-  // Estado para las notificaciones REALES
+  // Estado para las notificaciones
   const [notificaciones, setNotificaciones] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState<string | null>(null);
   
   // Estado para filtros
-  const [filtro, setFiltro] = useState('todas'); // todas, no-leidas, urgentes
-  const [tipoFiltro, setTipoFiltro] = useState('todos'); // todos los tipos
+  const [filtro, setFiltro] = useState('todas');
+  const [tipoFiltro, setTipoFiltro] = useState('todos');
   const [busqueda, setBusqueda] = useState('');
 
-  // Tipos de notificaciones REALES basados en tu generateNotifications
+  // Tipos de notificaciones basados en generateNotifications
   const tipos = [
     { id: 'todos', nombre: 'Todos los tipos', icono: '📋' },
     { id: 'RECEPCION', nombre: 'Recepción', icono: '📥' },
@@ -38,7 +38,7 @@ const CentroNotificaciones = () => {
     { id: 'SISTEMA', nombre: 'Sistema', icono: '⚙️' }
   ];
 
-  // Estadísticas REALES
+  // Estadísticas
   const [stats, setStats] = useState({
     total: 0,
     unread: 0,
@@ -46,7 +46,7 @@ const CentroNotificaciones = () => {
     today: 0
   });
 
-  // Cargar notificaciones REALES
+  // Cargar notificaciones
   useEffect(() => {
     const loadNotifications = async () => {
       setLoading(true);
@@ -72,27 +72,10 @@ const CentroNotificaciones = () => {
       }
     };
     
-    loadNotifications();
-  }, [user?.id]);
-
-  // Filtrar notificaciones
-  const notificacionesFiltradas = notificaciones.filter(notif => {
-    // Filtro por estado (leídas/no leídas)
-    if (filtro === 'no-leidas' && notif.leida) return false;
-    if (filtro === 'urgentes' && !notif.urgente) return false;
-    
-    // Filtro por tipo
-    if (tipoFiltro !== 'todos' && notif.tipo !== tipoFiltro) return false;
-    
-    // Búsqueda
-    if (busqueda && 
-        !notif.titulo.toLowerCase().includes(busqueda.toLowerCase()) && 
-        !notif.mensaje.toLowerCase().includes(busqueda.toLowerCase())) {
-      return false;
+    if (user?.id) {
+      loadNotifications();
     }
-    
-    return true;
-  });
+  }, [user?.id]);
 
   // Calcular notificaciones de hoy
   const calculateTodayNotifications = (notifications: Notification[]) => {
@@ -100,7 +83,107 @@ const CentroNotificaciones = () => {
     return notifications.filter(n => n.fecha.split('T')[0] === hoy).length;
   };
 
-  // Funciones REALES usando la API
+  // Filtrar notificaciones
+  const notificacionesFiltradas = notificaciones.filter(notif => {
+    if (filtro === 'no-leidas' && notif.leida) return false;
+    if (filtro === 'urgentes' && !notif.urgente) return false;
+    if (tipoFiltro !== 'todos' && notif.tipo !== tipoFiltro) return false;
+    if (busqueda && 
+        !notif.titulo.toLowerCase().includes(busqueda.toLowerCase()) && 
+        !notif.mensaje.toLowerCase().includes(busqueda.toLowerCase())) {
+      return false;
+    }
+    return true;
+  });
+
+  // ==================== FUNCIONES DE ACCIÓN ====================
+
+  // Función para obtener la ruta base según el rol
+  const getBaseRouteByRole = () => {
+    if (!user?.rol) return '/dashboard';
+    
+    const rolLower = user.rol.toLowerCase();
+    switch (rolLower) {
+      case 'admin':
+        return '/admin/dashboard';
+      case 'auditor':
+        return '/auditor/dashboard';
+      case 'gestor':
+      case 'revisor':
+      case 'aprobador':
+      case 'integrator':
+        return '/tracking/dashboard';
+      default:
+        return '/dashboard';
+    }
+  };
+
+  // Función para obtener la ruta de trazabilidad según el rol
+  const getTrazabilidadRoute = (correoId: string) => {
+    if (!user?.rol) return `/correos/${correoId}`;
+    
+    const rolLower = user.rol.toLowerCase();
+    switch (rolLower) {
+      case 'admin':
+      case 'auditor':
+        return `/auditor/trazabilidad/${correoId}`;
+      case 'gestor':
+      case 'revisor':
+      case 'aprobador':
+        return `/tracking/correos/${correoId}`;
+      default:
+        return `/correos/${correoId}`;
+    }
+  };
+
+  // Redireccionar según el rol del usuario
+  const redirectByRole = (defaultRoute: string = '/dashboard') => {
+    if (!user?.rol) {
+      navigate(defaultRoute);
+      return;
+    }
+    
+    const rolLower = user.rol.toLowerCase();
+    switch (rolLower) {
+      case 'admin':
+        navigate('/admin/dashboard');
+        break;
+      case 'auditor':
+        navigate('/auditor/dashboard');
+        break;
+      case 'gestor':
+      case 'revisor':
+      case 'aprobador':
+      case 'integrator':
+        navigate('/tracking/dashboard');
+        break;
+      default:
+        navigate(defaultRoute);
+    }
+  };
+
+  // Manejar acción de notificación
+  const handleAccionNotificacion = async (notificacion: Notification) => {
+    // Marcar como leída si no lo está
+    if (!notificacion.leida) {
+      await marcarComoLeida(notificacion.id);
+    }
+    
+    // Navegar según el tipo de notificación
+    if (notificacion.correoId) {
+      // Si es un correo, ir a la trazabilidad según el rol
+      navigate(getTrazabilidadRoute(notificacion.correoId));
+    } else if (notificacion.accion) {
+      // Si tiene acción específica, usarla
+      navigate(notificacion.accion);
+    } else {
+      // Por defecto, redirigir según el rol
+      redirectByRole();
+    }
+  };
+
+  // ==================== OPERACIONES DE NOTIFICACIONES ====================
+
   const marcarComoLeida = async (id: string) => {
     setProcessing(id);
     try {
@@ -166,7 +249,7 @@ const CentroNotificaciones = () => {
   const eliminarTodasLeidas = async () => {
     const leidasAEliminar = notificaciones.filter(n => n.leida);
     
-    // Eliminar una por una (en un sistema real sería batch)
+    // Eliminar una por una
     for (const notif of leidasAEliminar) {
       await deleteNotification(notif.id);
     }
@@ -183,19 +266,7 @@ const CentroNotificaciones = () => {
     }));
   };
 
-  const handleAccionNotificacion = async (notificacion: Notification) => {
-    // Marcar como leída si no lo está
-    if (!notificacion.leida) {
-      await marcarComoLeida(notificacion.id);
-    }
-    
-    // Navegar a la acción
-    if (notificacion.accion) {
-      navigate(notificacion.accion);
-    } else if (notificacion.correoId) {
-      navigate(`/correos/${notificacion.correoId}`);
-    }
-  };
+  // ==================== FUNCIONES DE UI ====================
 
   const getTipoColor = (tipo: string) => {
     switch (tipo) {
@@ -238,7 +309,6 @@ const CentroNotificaciones = () => {
         return date.toLocaleDateString('es-ES', {
           day: '2-digit',
           month: '2-digit',
-          year: 'numeric',
           hour: '2-digit',
           minute: '2-digit'
         });
@@ -248,9 +318,16 @@ const CentroNotificaciones = () => {
     }
   };
 
+  // Redireccionar al dashboard según el rol
+  const handleVolver = () => {
+    redirectByRole();
+  };
+
+  // ==================== RENDERIZADO ====================
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-4 md:p-6 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Cargando notificaciones...</p>
@@ -266,26 +343,28 @@ const CentroNotificaciones = () => {
         <div className="mb-6 md:mb-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">🔔 Centro de Notificaciones</h1>
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+                🔔 Centro de Notificaciones
+              </h1>
               <p className="text-gray-600 mt-1">
                 Gestiona todas tus alertas y notificaciones del sistema
               </p>
             </div>
             <div className="flex items-center space-x-3">
               <button 
-                onClick={() => navigate(-1)}
+                onClick={handleVolver}
                 className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center transition-colors"
               >
                 <span className="mr-2">←</span>
-                Volver
+                Volver al Dashboard
               </button>
               <div className="relative">
                 <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                   {stats.unread}
                 </span>
                 <button 
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                   onClick={() => navigate('/perfil?tab=preferencias')}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   ⚙️ Configurar
                 </button>
@@ -294,100 +373,58 @@ const CentroNotificaciones = () => {
           </div>
         </div>
 
-        {/* Estadísticas rápidas REALES */}
+        {/* Estadísticas */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Total notificaciones</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-              </div>
-              <div className="p-3 bg-blue-50 rounded-lg">
-                <span className="text-2xl text-blue-600">📋</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">No leídas</p>
-                <p className="text-2xl font-bold text-red-600">{stats.unread}</p>
-              </div>
-              <div className="p-3 bg-red-50 rounded-lg">
-                <span className="text-2xl text-red-600">🔔</span>
+          {[
+            { label: 'Total notificaciones', value: stats.total, icon: '📋', color: 'blue' },
+            { label: 'No leídas', value: stats.unread, icon: '🔔', color: 'red' },
+            { label: 'Urgentes', value: stats.urgent, icon: '⚠️', color: 'yellow' },
+            { label: 'Hoy', value: stats.today, icon: '📅', color: 'green' },
+          ].map((stat, index) => (
+            <div key={index} className="bg-white rounded-xl border border-gray-200 p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">{stat.label}</p>
+                  <p className={`text-2xl font-bold text-${stat.color}-600`}>
+                    {stat.value}
+                  </p>
+                </div>
+                <div className={`p-3 bg-${stat.color}-50 rounded-lg`}>
+                  <span className="text-2xl">{stat.icon}</span>
+                </div>
               </div>
             </div>
-          </div>
-
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Urgentes</p>
-                <p className="text-2xl font-bold text-yellow-600">{stats.urgent}</p>
-              </div>
-              <div className="p-3 bg-yellow-50 rounded-lg">
-                <span className="text-2xl text-yellow-600">⚠️</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl border border-gray-200 p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Hoy</p>
-                <p className="text-2xl font-bold text-green-600">{stats.today}</p>
-              </div>
-              <div className="p-3 bg-green-50 rounded-lg">
-                <span className="text-2xl text-green-600">📅</span>
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
 
         {/* Filtros y controles */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Filtro por estado */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 📊 Filtro por estado
               </label>
               <div className="flex space-x-2">
-                <button
-                  onClick={() => setFiltro('todas')}
-                  className={`flex-1 py-2 border rounded-lg text-sm transition-colors ${
-                    filtro === 'todas' 
-                      ? 'border-blue-500 bg-blue-50 text-blue-700' 
-                      : 'border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  Todas
-                </button>
-                <button
-                  onClick={() => setFiltro('no-leidas')}
-                  className={`flex-1 py-2 border rounded-lg text-sm transition-colors ${
-                    filtro === 'no-leidas' 
-                      ? 'border-blue-500 bg-blue-50 text-blue-700' 
-                      : 'border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  No leídas ({stats.unread})
-                </button>
-                <button
-                  onClick={() => setFiltro('urgentes')}
-                  className={`flex-1 py-2 border rounded-lg text-sm transition-colors ${
-                    filtro === 'urgentes' 
-                      ? 'border-blue-500 bg-blue-50 text-blue-700' 
-                      : 'border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  Urgentes ({stats.urgent})
-                </button>
+                {[
+                  { id: 'todas', label: 'Todas' },
+                  { id: 'no-leidas', label: `No leídas (${stats.unread})` },
+                  { id: 'urgentes', label: `Urgentes (${stats.urgent})` },
+                ].map((opcion) => (
+                  <button
+                    key={opcion.id}
+                    onClick={() => setFiltro(opcion.id)}
+                    className={`flex-1 py-2 border rounded-lg text-sm transition-colors ${
+                      filtro === opcion.id 
+                        ? 'border-blue-500 bg-blue-50 text-blue-700' 
+                        : 'border-gray-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    {opcion.label}
+                  </button>
+                ))}
               </div>
             </div>
 
-            {/* Filtro por tipo */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 🏷️ Filtro por tipo
@@ -405,7 +442,6 @@ const CentroNotificaciones = () => {
               </select>
             </div>
 
-            {/* Búsqueda */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 🔎 Buscar notificaciones
@@ -446,9 +482,9 @@ const CentroNotificaciones = () => {
               </button>
               <button
                 onClick={eliminarTodasLeidas}
-                disabled={notificaciones.length === stats.unread || processing?.startsWith('delete')}
+                disabled={notificaciones.length === stats.unread}
                 className={`px-4 py-2 rounded-lg text-sm transition-colors ${
-                  notificaciones.length === stats.unread || processing?.startsWith('delete')
+                  notificaciones.length === stats.unread
                     ? 'bg-gray-400 text-white cursor-not-allowed'
                     : 'bg-red-600 text-white hover:bg-red-700'
                 }`}
@@ -462,7 +498,7 @@ const CentroNotificaciones = () => {
           </div>
         </div>
 
-        {/* Lista de notificaciones REALES */}
+        {/* Lista de notificaciones */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
           {notificacionesFiltradas.length === 0 ? (
             <div className="text-center py-12">
@@ -475,7 +511,7 @@ const CentroNotificaciones = () => {
               <p className="text-gray-600 mb-4">
                 {busqueda 
                   ? 'Intenta con otros términos de búsqueda' 
-                  : 'Estás al día con todas tus notificaciones del sistema'}
+                  : 'Estás al día con todas tus notificaciones'}
               </p>
               {busqueda && (
                 <button
@@ -529,14 +565,14 @@ const CentroNotificaciones = () => {
                           </div>
                           <p className="text-gray-600 mb-2">{notificacion.mensaje}</p>
                           
-                          {/* Metadata adicional si existe */}
+                          {/* Metadata adicional */}
                           {notificacion.metadata && (
                             <div className="text-xs text-gray-500 mt-2">
                               {notificacion.metadata.radicado && (
                                 <span className="mr-3">📄 {notificacion.metadata.radicado}</span>
                               )}
                               {notificacion.metadata.diasRestantes !== undefined && (
-                                <span className="mr-3">⏱️ {notificacion.metadata.diasRestantes} días restantes</span>
+                                <span className="mr-3">⏱️ {notificacion.metadata.diasRestantes} días</span>
                               )}
                             </div>
                           )}
@@ -561,7 +597,7 @@ const CentroNotificaciones = () => {
                             onClick={() => handleAccionNotificacion(notificacion)}
                             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm transition-colors whitespace-nowrap"
                           >
-                            {notificacion.correoId ? 'Ver correo' : 'Ver detalles'}
+                            {notificacion.correoId ? 'Ver detalles' : 'Ver acción'}
                           </button>
                           {!notificacion.leida && (
                             <button
@@ -596,7 +632,7 @@ const CentroNotificaciones = () => {
           )}
         </div>
 
-        {/* Preferencias de notificaciones */}
+        {/* Preferencias */}
         <div className="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">⚙️ Preferencias de notificaciones</h3>
           
@@ -606,8 +642,8 @@ const CentroNotificaciones = () => {
               className="p-4 bg-white border border-blue-300 rounded-lg hover:bg-blue-50 flex flex-col items-center transition-colors"
             >
               <span className="text-2xl mb-2">📧</span>
-              <span className="font-medium text-blue-900">Configurar email</span>
-              <span className="text-xs text-gray-600 mt-1">Notificaciones por correo</span>
+              <span className="font-medium text-blue-900">Notificaciones email</span>
+              <span className="text-xs text-gray-600 mt-1">Configurar alertas por correo</span>
             </button>
             
             <button 
@@ -615,29 +651,28 @@ const CentroNotificaciones = () => {
               className="p-4 bg-white border border-green-300 rounded-lg hover:bg-green-50 flex flex-col items-center transition-colors"
             >
               <span className="text-2xl mb-2">📱</span>
-              <span className="font-medium text-green-900">Notificaciones push</span>
-              <span className="text-xs text-gray-600 mt-1">Alertas en tiempo real</span>
+              <span className="font-medium text-green-900">Alertas push</span>
+              <span className="text-xs text-gray-600 mt-1">Notificaciones en tiempo real</span>
             </button>
             
             <button 
               onClick={() => {
-                // Lógica para silenciar notificaciones temporalmente
                 alert('Funcionalidad en desarrollo: Silenciar notificaciones por 1 hora');
               }}
               className="p-4 bg-white border border-purple-300 rounded-lg hover:bg-purple-50 flex flex-col items-center transition-colors"
             >
               <span className="text-2xl mb-2">🔕</span>
-              <span className="font-medium text-purple-900">Silenciar temporalmente</span>
+              <span className="font-medium text-purple-900">Modo silencioso</span>
               <span className="text-xs text-gray-600 mt-1">Pausar notificaciones</span>
             </button>
             
             <button 
-              onClick={() => navigate('/dashboard')}
+              onClick={() => redirectByRole()}
               className="p-4 bg-white border border-red-300 rounded-lg hover:bg-red-50 flex flex-col items-center transition-colors"
             >
               <span className="text-2xl mb-2">📊</span>
-              <span className="font-medium text-red-900">Reporte de actividad</span>
-              <span className="text-xs text-gray-600 mt-1">Ver dashboard completo</span>
+              <span className="font-medium text-red-900">Ir al Dashboard</span>
+              <span className="text-xs text-gray-600 mt-1">Ver estadísticas completas</span>
             </button>
           </div>
         </div>

@@ -4,8 +4,8 @@ export const USER_ROLES = [
   { value: 'GESTOR', label: 'Gestor', description: 'Elabora respuestas' },
   { value: 'REVISOR', label: 'Revisor', description: 'Revisa las respuestas' },
   { value: 'APROBADOR', label: 'Aprobador', description: 'Aprueba respuestas finales' },
-  { value: 'AUDITOR', label: 'Auditor', description: 'Monitorea y genera reportes' },
-  { value: 'ADMIN', label: 'Administrador', description: 'Gestiona sistema y usuarios' },
+  { value: 'auditor', label: 'Auditor', description: 'Monitorea y genera reportes' },
+  { value: 'admin', label: 'Administrador', description: 'Gestiona sistema y usuarios' },
 ] as const;
 
 export const ESTADOS_CORREO = [
