@@ -39,7 +39,7 @@ export const AccountsManagementPage = lazy(() => import("../modules/administrado
 // Lazy Imports - Auditor
 export const ResumenGeneralPage = lazy(() => import("../modules/auditor/pages/ResumenGeneralPage"));
 export const FiltrosAvanzadosPage = lazy(() => import("../modules/auditor/pages/FiltrosAvanzadosPage"));
-export const ListaCorreoPage = lazy(() => import("../modules/auditor/pages/ListaCorreosPage"));
+export const FlujoCorreoPage = lazy(() => import("../modules/auditor/pages/FlujoCorreoPage"));
 
 
 

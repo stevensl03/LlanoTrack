@@ -38,9 +38,9 @@ const HeaderShowNavigator = ({ showAll, setShowAll, user }: {
           {/*<Link  className="p-2 text-gray-600 hover:bg-gray-100 rounded-full" to="/notificaciones">
             🔔
           </Link>*/}
-          <Link  className="p-2 text-gray-600 hover:bg-gray-100 rounded-full" to="/busqueda">
+        {/*  <Link  className="p-2 text-gray-600 hover:bg-gray-100 rounded-full" to="/busqueda">
             🔍
-          </Link>
+          </Link>*/}
         </div>
       </div>
     </header>

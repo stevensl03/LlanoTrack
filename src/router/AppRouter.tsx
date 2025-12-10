@@ -21,7 +21,7 @@ import {
   ResumenGeneralPage,
   AuditorLayout,
   FiltrosAvanzadosPage,
-  ListaCorreoPage,
+  FlujoCorreoPage,
  // CentroNotificaciones,
   PerfilUsuario,
   AccountsManagementPage,
@@ -105,7 +105,7 @@ const AppRouter = () => {
           <Route index element={<LandingPage />} />
           <Route path="/auditor/resumenGeneral" element={<ResumenGeneralPage />} />
           <Route path="/auditor/filtrosAvanzados" element={<FiltrosAvanzadosPage />} />
-          <Route path="/auditor/listaCorreo" element={<ListaCorreoPage />} />
+          <Route path="/auditor/listaCorreo" element={<FlujoCorreoPage />} />
 
         </ Route >
 
