@@ -20,8 +20,8 @@ export const ProtectedRoute = ({ children, roles }: ProtectedRouteProps) => {
 
   // 2️⃣ Validar roles si fueron especificados
   if (roles && roles.length > 0) {
-    console.log(roles, user?.rol)
-    if (!user?.rol || !roles.includes(user.rol)) {
+    console.log(roles, user?.roles)
+    if (!user?.roles || !roles.includes(user?.roles[0])) {
       return <Navigate to="/not-found-404" replace />;
     }
   }

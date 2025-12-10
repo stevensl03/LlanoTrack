@@ -1,5 +1,5 @@
 // pages/CentroNotificaciones.tsx
-import { useState, useEffect } from 'react';
+/*import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { useAuth } from '../../../state/AuthContext';
 import { useMockService } from '../../hooks/useMockService';
@@ -339,7 +339,7 @@ const CentroNotificaciones = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
+        {/* Header *
         <div className="mb-6 md:mb-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
@@ -373,7 +373,7 @@ const CentroNotificaciones = () => {
           </div>
         </div>
 
-        {/* Estadísticas */}
+        {/* Estadísticas *
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           {[
             { label: 'Total notificaciones', value: stats.total, icon: '📋', color: 'blue' },
@@ -397,7 +397,7 @@ const CentroNotificaciones = () => {
           ))}
         </div>
 
-        {/* Filtros y controles */}
+        {/* Filtros y controles *
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
@@ -459,7 +459,7 @@ const CentroNotificaciones = () => {
             </div>
           </div>
 
-          {/* Acciones masivas */}
+          {/* Acciones masivas 
           <div className="flex justify-between items-center mt-6">
             <div className="flex space-x-3">
               <button
@@ -498,7 +498,7 @@ const CentroNotificaciones = () => {
           </div>
         </div>
 
-        {/* Lista de notificaciones */}
+        {/* Lista de notificaciones *
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
           {notificacionesFiltradas.length === 0 ? (
             <div className="text-center py-12">
@@ -532,7 +532,7 @@ const CentroNotificaciones = () => {
                   }`}
                 >
                   <div className="flex items-start">
-                    {/* Icono */}
+                    {/* Icono *
                     <div className="flex-shrink-0 mr-4">
                       <div className={`h-12 w-12 rounded-lg flex items-center justify-center text-2xl ${
                         notificacion.urgente ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-600'
@@ -541,7 +541,7 @@ const CentroNotificaciones = () => {
                       </div>
                     </div>
 
-                    {/* Contenido */}
+                    {/* Contenido *
                     <div className="flex-1">
                       <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
                         <div className="flex-1">
@@ -565,7 +565,7 @@ const CentroNotificaciones = () => {
                           </div>
                           <p className="text-gray-600 mb-2">{notificacion.mensaje}</p>
                           
-                          {/* Metadata adicional */}
+                          {/* Metadata adicional *
                           {notificacion.metadata && (
                             <div className="text-xs text-gray-500 mt-2">
                               {notificacion.metadata.radicado && (
@@ -590,7 +590,7 @@ const CentroNotificaciones = () => {
                         </div>
                       </div>
 
-                      {/* Acciones */}
+                      {/* Acciones 
                       <div className="flex flex-col md:flex-row md:justify-between md:items-center mt-4 gap-3">
                         <div className="flex flex-wrap gap-2">
                           <button
@@ -632,7 +632,7 @@ const CentroNotificaciones = () => {
           )}
         </div>
 
-        {/* Preferencias */}
+        {/* Preferencias *
         <div className="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">⚙️ Preferencias de notificaciones</h3>
           
@@ -681,4 +681,4 @@ const CentroNotificaciones = () => {
   );
 };
 
-export default CentroNotificaciones;
+export default CentroNotificaciones;*/

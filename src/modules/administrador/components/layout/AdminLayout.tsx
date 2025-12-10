@@ -26,7 +26,6 @@ const menuOptions = [
     { id: "user", name: "usuarios", path: "/admin/usersConfig", icon: "👥" },
     { id: "entity", name: "Entidades", path: "/admin/entitiesConfig", icon: "🏢" },
     { id: "account", name: "Cuentas", path: "/admin/accountsConfig", icon: "🔑" },
-    { id: "flow", name: "Flujos", path: "/admin/flowsConfig", icon: "🔄" },
     { id: "requestType", name: "Solicitud", path: "/admin/requestTypesConfig", icon: "📲" },
 ]
 const footerOptions = [
@@ -38,7 +37,7 @@ const footerOptions = [
 
 const AdminLayout = (): JSX.Element => {
     const { sidebarOpen, toggleSidebar }: AppContextType = useApp();
-    const { user, logout }:AuthContextType = useAuth();
+    const { user, logout } = useAuth() as AuthContextType;;
 
     return (
         <div className={`${sidebarOpen ? "grid grid-cols-1" : "grid grid-cols-[200px_1fr]"} gap-0 h-screen`}>

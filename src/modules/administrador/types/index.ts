@@ -261,3 +261,50 @@ export type Nullable<T> = T | null;
 export type Optional<T> = T | undefined;
 export type RecordOf<T> = Record<string, T>;
 export type ArrayOf<T> = T[];
+
+
+// /pages/RequestTypesPage/types/index.ts
+export interface RequestType {
+  id: string;
+  nombre: string;
+  plazoDiasPromedio: number | null;
+  plazoDiasMinimo: number | null;
+  plazoDiasMaximo: number | null;
+  urgencia: 'BAJA' | 'MEDIA' | 'ALTA';
+  descripcion?: string;
+  activo: boolean;
+  totalCorreos: number;
+  correosPendientes: number;
+  correosRespondidos: number;
+  correosVencidos: number;
+  tiempoPromedioRespuestaReal: number | null;
+}
+
+export interface RequestTypeFormData {
+  tipo: string;
+  plazoDias: number;
+  urgencia: 'BAJA' | 'MEDIA' | 'ALTA';
+  descripcion?: string;
+  activo?: boolean;
+}
+
+export interface RequestTypeTableProps {
+  requestTypes: RequestType[];
+  onEdit: (type: RequestType) => void;
+  onDelete: (id: number) => void;
+  loading: boolean;
+}
+
+export interface RequestTypeModalProps {
+  requestType: RequestType | null;
+  onSave: (typeData: RequestTypeFormData) => void;
+  onClose: () => void;
+  loading?: boolean;
+}
+
+export interface RequestTypeSearchProps {
+  searchTerm: string;
+  onSearchChange: (term: string) => void;
+  loading: boolean;
+  onAddNew: () => void;
+}

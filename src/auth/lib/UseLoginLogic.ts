@@ -1,11 +1,11 @@
-// hooks/useLogin.ts o lib/useLogin.ts
-import { useState, useCallback } from 'react';
+// hooks/useLogin.ts
+import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import { useAuthService } from '../../shared/hooks/useAuthService';
+import { useAuth } from '../../state/AuthContext'; // Usamos el contexto actualizado
 
 export const useLogin = () => {
     const navigate = useNavigate();
-    const { login, loading, error, clearError } = useAuthService();
+    const auth = useAuth(); // Usamos el contexto de autenticación
     
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -33,37 +33,46 @@ export const useLogin = () => {
         }
 
         try {
-            const result = await login(email, password);
+            await auth.login(email, password);
             
-            if (result.success) {
-                // Redirigir al dashboard
-                navigate('/admin', { replace: true });
-                
-                // Opcional: Guardar email en localStorage si rememberMe está activado
-                if (rememberMe) {
-                    localStorage.setItem('rememberedEmail', email);
-                } else {
-                    localStorage.removeItem('rememberedEmail');
-                }
+            // Redirigir al dashboard
+            navigate('/admin', { replace: true });
+            
+            // Opcional: Guardar email en localStorage si rememberMe está activado
+            if (rememberMe) {
+                localStorage.setItem('rememberedEmail', email);
             } else {
-                // El error ya está manejado por useAuthService, pero podemos personalizarlo
-                const errorMessage = result.error || 'Error en el inicio de sesión';
+                localStorage.removeItem('rememberedEmail');
+            }
+        } catch (err: any) {
+            // Manejo de errores específicos del backend
+            const errorMessage = err.message || 'Error en el inicio de sesión';
+            
+            // Personalización de mensajes basados en el error
+            if (errorMessage.includes('Credenciales inválidas') || 
+                errorMessage.includes('401')) {
+                setLocalError('Correo o contraseña incorrectos');
+            } else if (errorMessage.includes('conectar')) {
+                setLocalError('No se pudo conectar con el servidor');
+            } else {
                 setLocalError(errorMessage);
             }
-        } catch (err) {
-            setLocalError('Error de conexión. Por favor, intente nuevamente');
             console.error('Login error:', err);
         }
-    }, [email, password, rememberMe, login, navigate]);
+    }, [email, password, rememberMe, auth.login, navigate]);
 
     // Cargar email recordado al iniciar
-    useState(() => {
+    useEffect(() => {
         const rememberedEmail = localStorage.getItem('rememberedEmail');
         if (rememberedEmail) {
             setEmail(rememberedEmail);
             setRememberMe(true);
         }
-    });
+    }, []);
+
+    const clearLocalError = useCallback(() => {
+        setLocalError(null);
+    }, []);
 
     return {
         // Estado
@@ -71,8 +80,8 @@ export const useLogin = () => {
         password,
         showPassword,
         rememberMe,
-        error: error || localError,
-        isLoading: loading,
+        error: localError || (auth.user === null && auth.isAuthenticated === false ? null : undefined),
+        isLoading: auth.isLoading,
         
         // Setters
         setEmail,
@@ -82,9 +91,6 @@ export const useLogin = () => {
         
         // Funciones
         handleSubmit,
-        clearError: () => {
-            clearError();
-            setLocalError(null);
-        }
+        clearError: clearLocalError
     };
 };

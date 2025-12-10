@@ -1,9 +1,9 @@
+// components/LoginForm.tsx
 import type { JSX } from "react";
 import { Link } from "react-router";
 import { useLogin } from "../lib/UseLoginLogic"; // Ahora usa el hook actualizado
 
 const LoginForm = (): JSX.Element => {
-    // El hook ahora usa useAuthService internamente
     const {
         email,
         password,
@@ -21,7 +21,6 @@ const LoginForm = (): JSX.Element => {
 
     return (
         <>
-            {/* Tu JSX existente permanece igual */}
             <svg xmlns="http://www.w3.org/2000/svg" 
                 className="icon icon-tabler icon-tabler-mail-forward w-12 h-12 text-gray-800"
                     width="24"
@@ -49,10 +48,17 @@ const LoginForm = (): JSX.Element => {
 
             <form onSubmit={handleSubmit} className="grid gap-4 w-full px-6"> 
                 
-                {/* Mensaje de Error - actualizado para manejar ambos tipos de error */}
+                {/* Mensaje de Error */}
                 {error && (
                     <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                        <svg xmlns="http://www.w3.org/2000/svg" 
+                            className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" 
+                            viewBox="0 0 24 24" 
+                            strokeWidth="1.5" 
+                            stroke="currentColor" 
+                            fill="none" 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round">
                             <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
                             <circle cx="12" cy="12" r="9" />
                             <line x1="12" y1="8" x2="12" y2="12" />
@@ -60,8 +66,7 @@ const LoginForm = (): JSX.Element => {
                         </svg>
                         <div className="flex-1">
                             <p className="text-sm text-red-800">{error}</p>
-                            {/* Puedes mostrar más detalles si es necesario */}
-                            {error.includes('credenciales') && (
+                            {error.includes('incorrectos') && (
                                 <p className="text-xs text-red-600 mt-1">
                                     Verifique su correo y contraseña
                                 </p>
@@ -70,7 +75,7 @@ const LoginForm = (): JSX.Element => {
                     </div>
                 )}
                 
-                {/* Campos del formulario (permanecen igual) */}
+                {/* Campo Email */}
                 <label htmlFor="email" className="text-[15px] font-bold text-gray-800 grid gap-1 w-full"> 
                     Correo electrónico laboral:
 
@@ -105,11 +110,19 @@ const LoginForm = (): JSX.Element => {
                     </div>
                 </label>
 
+                {/* Campo Contraseña */}
                 <label htmlFor="password" className="text-[15px] font-bold text-gray-800 grid gap-1 w-full">
                     Contraseña:
                     
                     <div className="flex items-center p-3 bg-white border border-gray-300 rounded-lg shadow-sm focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 transition-all">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-gray-500" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                        <svg xmlns="http://www.w3.org/2000/svg" 
+                            className="w-5 h-5 text-gray-500" 
+                            viewBox="0 0 24 24" 
+                            strokeWidth="1.5" 
+                            stroke="currentColor" 
+                            fill="none" 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round">
                             <path stroke="none" d="M0 0h24v24H0z" fill="none" />
                             <rect x="5" y="11" width="14" height="10" rx="2" />
                             <circle cx="12" cy="16" r="1" />
@@ -138,11 +151,39 @@ const LoginForm = (): JSX.Element => {
                             className="text-gray-500 hover:text-gray-700 p-0.5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                         >
-                            {/* Iconos para mostrar/ocultar contraseña */}
+                            {showPassword ? (
+                                <svg xmlns="http://www.w3.org/2000/svg" 
+                                    className="w-5 h-5" 
+                                    viewBox="0 0 24 24" 
+                                    strokeWidth="1.5" 
+                                    stroke="currentColor" 
+                                    fill="none" 
+                                    strokeLinecap="round" 
+                                    strokeLinejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                    <path d="M10.585 10.587a2 2 0 0 0 2.829 2.828" />
+                                    <path d="M16.681 16.673a8.717 8.717 0 0 1 -4.681 1.327c-3.6 0 -6.6 -2 -9 -6c1.272 -2.12 2.712 -3.678 4.32 -4.674m2.86 -1.146a9.055 9.055 0 0 1 1.82 -.18c3.6 0 6.6 2 9 6c-.666 1.11 -1.379 2.067 -2.138 2.87" />
+                                    <path d="M3 3l18 18" />
+                                </svg>
+                            ) : (
+                                <svg xmlns="http://www.w3.org/2000/svg" 
+                                    className="w-5 h-5" 
+                                    viewBox="0 0 24 24" 
+                                    strokeWidth="1.5" 
+                                    stroke="currentColor" 
+                                    fill="none" 
+                                    strokeLinecap="round" 
+                                    strokeLinejoin="round">
+                                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                    <circle cx="12" cy="12" r="2" />
+                                    <path d="M22 12c-2.667 4.667 -6 7 -10 7s-7.333 -2.333 -10 -7c2.667 -4.667 6 -7 10 -7s7.333 2.333 10 7" />
+                                </svg>
+                            )}
                         </button>
                     </div>
                 </label>
 
+                {/* Opciones adicionales */}
                 <div className="flex justify-between items-center w-full">
                     <label htmlFor="recordarUsuario" className="flex items-center gap-1 text-sm text-gray-700 cursor-pointer">
                         <input 
@@ -165,6 +206,7 @@ const LoginForm = (): JSX.Element => {
                     </Link>
                 </div>
 
+                {/* Botón de envío */}
                 <button 
                     type="submit"
                     disabled={isLoading}

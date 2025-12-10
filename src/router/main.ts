@@ -19,18 +19,18 @@ export { SpinnerCircule } from "../shared/ui/Spinner";
 
 //Vistas comunes
 export {default as BusquedaGlobal} from "../shared/pages/common/BusquedaGlobal";
-export {default as CentroNotificaciones} from "../shared/pages/common/CentroNotificaciones";
-export {default as PerfilUsuario} from "../shared/pages/common/PerfilUsuario";
+//export {default as CentroNotificaciones} from "../shared/pages/common/CentroNotificaciones";
+//export {default as PerfilUsuario} from "../shared/pages/common/PerfilUsuario";
 
 // Router
 export { ProtectedRoute } from "./ProtectedRoute";
 
 // Lazy Imports - Layouts
-export const DashBoard = lazy(() => import("../tracking/pages/DashBoard"));
 export const AuditorLayout = lazy(() => import("../modules/auditor/components/layout/AuditorLayout"));
+export const AdminLayout = lazy(() => import("../modules/administrador/components/layout/AdminLayout"));
+
 
 // Lazy Imports - Admin
-export const AdminLayout = lazy(() => import("../modules/administrador/components/layout/AdminLayout"));
 export const AdminDashboardPage = lazy(() => import("../modules/administrador/pages/AdminDashboardPage"));
 export const UsersManagementPage = lazy(() => import("../modules/administrador/pages/UsersManagementPage"));
 export const EntitiesManagementPage = lazy(() => import("../modules/administrador/pages/EntitiesManagementPage"));

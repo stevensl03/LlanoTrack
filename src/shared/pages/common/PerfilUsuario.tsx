@@ -1,17 +1,16 @@
 // pages/PerfilUsuario.tsx
-import { useState, useEffect } from 'react';
+/*import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { useAuth } from '../../../state/AuthContext';
-import { useMockService } from '../../hooks/useMockService';
-import type { User } from '../../types/core.types';
+
 
 const PerfilUsuario = () => {
   const navigate = useNavigate();
   const { user: currentUser } = useAuth();
-  const { getCurrentUser, updateUser } = useMockService();
+  //const { getCurrentUser, updateUser } = useMockService();
   
   // Estado para datos del usuario
-  const [usuario, setUsuario] = useState<User | null>(null);
+  //const [usuario, setUsuario] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -207,7 +206,8 @@ const PerfilUsuario = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
+        {/* Header */
+        /*
         <div className="mb-6 md:mb-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
@@ -226,7 +226,7 @@ const PerfilUsuario = () => {
           </div>
         </div>
 
-        {/* Mensajes de éxito/error */}
+        {/* Mensajes de éxito/error 
         {saveMessage && (
           <div className={`mb-6 p-4 rounded-lg ${
             saveMessage.type === 'success' 
@@ -240,7 +240,7 @@ const PerfilUsuario = () => {
           </div>
         )}
 
-        {/* Tabs de navegación */}
+        {/* Tabs de navegación 
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm mb-6">
           <div className="border-b border-gray-200">
             <nav className="flex overflow-x-auto">
@@ -287,13 +287,13 @@ const PerfilUsuario = () => {
             </nav>
           </div>
 
-          {/* Contenido de las tabs */}
+          {/* Contenido de las tabs 
           <div className="p-6">
-            {/* Tab: Datos Personales */}
+            {/* Tab: Datos Personales 
             {activeTab === 'datos' && (
               <div className="space-y-6">
                 <div className="flex flex-col md:flex-row gap-6">
-                  {/* Avatar y resumen */}
+                  {/* Avatar y resumen 
                   <div className="md:w-1/3">
                     <div className="bg-gray-50 rounded-xl p-6">
                       <div className="flex flex-col items-center">
@@ -324,7 +324,7 @@ const PerfilUsuario = () => {
                       </div>
                     </div>
                     
-                    {/* Información del sistema */}
+                    {/* Información del sistema 
                     <div className="mt-4 bg-gray-50 rounded-xl p-4 space-y-3">
                       <div>
                         <h3 className="font-medium text-gray-900 mb-2">🎭 Rol del sistema</h3>
@@ -357,7 +357,7 @@ const PerfilUsuario = () => {
                     </div>
                   </div>
 
-                  {/* Formulario de datos */}
+                  {/* Formulario de datos 
                   <div className="md:w-2/3">
                     <div className="flex justify-between items-center mb-6">
                       <h3 className="text-lg font-semibold text-gray-900">Información personal</h3>
@@ -495,11 +495,11 @@ const PerfilUsuario = () => {
               </div>
             )}
 
-            {/* Tab: Preferencias */}
+            {/* Tab: Preferencias 
             {activeTab === 'preferencias' && (
               <div className="space-y-6">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Notificaciones */}
+                  {/* Notificaciones 
                   <div className="bg-white border border-gray-200 rounded-xl p-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">🔔 Configuración de notificaciones</h3>
                     
@@ -570,7 +570,7 @@ const PerfilUsuario = () => {
                     </div>
                   </div>
 
-                  {/* Configuración general */}
+                  {/* Configuración general 
                   <div className="bg-white border border-gray-200 rounded-xl p-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">⚙️ Configuración general</h3>
                     
@@ -676,11 +676,11 @@ const PerfilUsuario = () => {
               </div>
             )}
 
-            {/* Tab: Seguridad */}
+            {/* Tab: Seguridad 
             {activeTab === 'seguridad' && (
               <div className="space-y-6">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Cambio de contraseña */}
+                  {/* Cambio de contraseña 
                   <div className="bg-white border border-gray-200 rounded-xl p-6">
                     <div className="flex justify-between items-center mb-6">
                       <h3 className="text-lg font-semibold text-gray-900">🔐 Cambio de contraseña</h3>
@@ -771,7 +771,7 @@ const PerfilUsuario = () => {
                     )}
                   </div>
 
-                  {/* Seguridad de la cuenta */}
+                  {/* Seguridad de la cuenta 
                   <div className="bg-white border border-gray-200 rounded-xl p-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-6">🛡️ Seguridad de la cuenta</h3>
                     
@@ -821,7 +821,7 @@ const PerfilUsuario = () => {
               </div>
             )}
 
-            {/* Tab: Historial de Actividad */}
+            {/* Tab: Historial de Actividad 
             {activeTab === 'actividad' && (
               <div className="space-y-6">
                 <div className="flex justify-between items-center">
@@ -895,4 +895,4 @@ const PerfilUsuario = () => {
   );
 };
 
-export default PerfilUsuario;
+export default PerfilUsuario;*/

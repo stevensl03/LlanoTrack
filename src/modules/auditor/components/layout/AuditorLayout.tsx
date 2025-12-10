@@ -11,14 +11,18 @@ type AppContextType = {
     toggleSidebar: () => void;
 }
 
-type AuthContextType = {
-    user: {
-        nombre: string;
-        email: string;
-        rol: string;
-    } | null;
+// AuthContext.tsx
+export interface AuthUser {
+    nombre: string;
+    email: string;
+    rol: string;
+}
+
+export interface AuthContextType {
+    user: AuthUser | null;
     logout: () => void;
 }
+
 
 const menuOptions = [
     { id: "dashboard", name: "Panel", path: "/auditor/dashboard", icon: "📧" },
@@ -32,7 +36,7 @@ const footerOptions = [
 
 const AuditorLayout = (): JSX.Element => {
     const { sidebarOpen, toggleSidebar }: AppContextType = useApp();
-    const { user, logout }:AuthContextType = useAuth();
+    const { user, logout } = useAuth() as AuthContextType;;
 
     return (
         <div className={`${sidebarOpen ? "grid grid-cols-1" : "grid grid-cols-[200px_1fr]"} gap-0 h-screen`}>

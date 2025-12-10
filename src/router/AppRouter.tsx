@@ -22,8 +22,8 @@ import {
   TrazabilidadPage,
   AuditorLayout,
   BusquedaGlobal,
-  CentroNotificaciones,
-  PerfilUsuario,
+ // CentroNotificaciones,
+  //PerfilUsuario,
   AccountsManagementPage,
 } from "./main";
 
@@ -51,7 +51,7 @@ const AppRouter = () => {
             </ProtectedRoute>
           } 
         />
-        
+        {/*
         <Route 
           path="/notificaciones" 
           element={
@@ -74,7 +74,7 @@ const AppRouter = () => {
         <Route
           path="/admin"
           element={
-            <ProtectedRoute roles={["admin"]}>
+            <ProtectedRoute roles={["ROLE_ADMIN"]}>
               <Suspense fallback={<SpinnerCircule />}>
                 <AdminLayout />
               </Suspense>
@@ -94,7 +94,7 @@ const AppRouter = () => {
         <Route
           path="/auditor"
           element={
-            <ProtectedRoute roles={["admin", "auditor"]}>
+            <ProtectedRoute roles={["ROLE_ADMIN", "AUDITOR"]}>
               <Suspense fallback={<SpinnerCircule />}>
                 <AuditorLayout />
               </Suspense>
