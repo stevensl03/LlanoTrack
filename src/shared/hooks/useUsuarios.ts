@@ -39,6 +39,8 @@ interface UseUsuariosReturn {
   obtenerUsuarioPorId: (id: number) => Promise<UsuarioResponse>;
   buscarUsuariosPorNombre: (nombre: string) => Promise<UsuarioResponse[]>;
   buscarUsuariosPorRol: (rol: Rol | string) => Promise<UsuarioResponse[]>;
+  obtenerUsuarioPorCorreo: (correo: string) => Promise<UsuarioResponse>;
+  buscarUsuariosPorCorreo: (correo: string) => Promise<UsuarioResponse[]>;
   
   // Métodos de paginación
   obtenerUsuariosPaginados: (page: number, size: number) => Promise<void>;
@@ -274,6 +276,36 @@ export const useUsuarios = (initialPage: number = 0, initialSize: number = 10): 
     }
   }, []);
 
+  // Buscar por correo
+const obtenerUsuarioPorCorreo = useCallback(async (correo: string): Promise<UsuarioResponse> => {
+  setLoading(true);
+  setError(null);
+  try {
+    const usuario = await usuariosService.obtenerUsuarioPorCorreo(correo);
+    setUsuarioSeleccionado(usuario);
+    return usuario;
+  } catch (err: any) {
+    setError(err.message || `Error al obtener usuario por correo ${correo}`);
+    throw err;
+  } finally {
+    setLoading(false);
+  }
+}, []);
+
+const buscarUsuariosPorCorreo = useCallback(async (correo: string): Promise<UsuarioResponse[]> => {
+  setLoading(true);
+  setError(null);
+  try {
+    const resultados = await usuariosService.buscarUsuariosPorCorreo(correo);
+    return resultados;
+  } catch (err: any) {
+    setError(err.message || 'Error al buscar usuarios por correo');
+    throw err;
+  } finally {
+    setLoading(false);
+  }
+}, []);
+
   // Seleccionar usuario
   const seleccionarUsuario = useCallback((usuario: UsuarioResponse | null) => {
     setUsuarioSeleccionado(usuario);
@@ -308,6 +340,8 @@ export const useUsuarios = (initialPage: number = 0, initialSize: number = 10): 
     obtenerUsuarioPorId,
     buscarUsuariosPorNombre,
     buscarUsuariosPorRol,
+    obtenerUsuarioPorCorreo,
+    buscarUsuariosPorCorreo,
 
     // Métodos de paginación
     obtenerUsuariosPaginados,

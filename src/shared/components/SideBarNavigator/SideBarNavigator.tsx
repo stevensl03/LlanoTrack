@@ -10,15 +10,15 @@ type sideBarNavAndUserProps = {
   menuOptions: Array<{ id: string; name: string; path: string; icon: string; badge?: number }>;
   footerOptions: Array<{ id: string; name: string; path: string; icon: string }>;
       user: {
-        nombre: string;
         email: string;
     } | null;
     logout: () => void;
+    nombre: string | null;
 }
 
 
 
-const SideBarNavigator = ({ showAll,menuOptions, footerOptions, user, logout }: sideBarNavAndUserProps) => {
+const SideBarNavigator = ({ showAll,menuOptions, footerOptions, user, nombre, logout }: sideBarNavAndUserProps) => {
   const { setCurrentPageTitle } = useApp();
   //const { user, logout } = useAuth();
   const [activeLink, setActiveLink]:[string, (id: string) => void] = useState("dashboard");
@@ -29,10 +29,10 @@ const SideBarNavigator = ({ showAll,menuOptions, footerOptions, user, logout }: 
         {/* User Info */}
         <Link to="/perfil" className="flex items-center gap-3 mb-8 p-2">
           <div className="w-9 h-9 bg-orange-200 rounded-full flex items-center justify-center text-sm font-bold text-orange-700">
-            {user?.nombre?.charAt(0) || "U"}
+            {nombre?.charAt(0) || "U"}
           </div>
           <div>
-            <p className="text-gray-900 font-bold text-sm">{user?.nombre || "Usuario"}</p>
+            <p className="text-gray-900 font-bold text-sm">{nombre || "Usuario"}</p>
             <p className="text-gray-500 text-xs">{user?.email || "email@ejemplo.com"}</p>
           </div>
         </Link>

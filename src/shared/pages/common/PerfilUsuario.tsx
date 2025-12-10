@@ -1,17 +1,22 @@
 // pages/PerfilUsuario.tsx
-/*import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { useAuth } from '../../../state/AuthContext';
-
+import useUsuarios from '../../../shared/hooks/useUsuarios';
+import type { UsuarioResponse, UsuarioActualizarRequest, Rol, UsuarioCrearRequest } from '../../../shared/types/usuarioTypes';
 
 const PerfilUsuario = () => {
   const navigate = useNavigate();
   const { user: currentUser } = useAuth();
-  //const { getCurrentUser, updateUser } = useMockService();
+  const { 
+    obtenerUsuarioPorCorreo, 
+    actualizarUsuario, 
+    loading, 
+    error 
+  } = useUsuarios();
   
   // Estado para datos del usuario
-  //const [usuario, setUsuario] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [usuario, setUsuario] = useState<UsuarioResponse | null>(null);
   const [saving, setSaving] = useState(false);
 
   const [preferencias, setPreferencias] = useState({
@@ -50,28 +55,21 @@ const PerfilUsuario = () => {
   const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
   const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  // Cargar datos del usuario
+  // Cargar datos del usuario por correo
   useEffect(() => {
     const loadUserData = async () => {
-      if (currentUser) {
-        setUsuario(currentUser);
-        setLoading(false);
-      } else {
+      if (currentUser?.email) {
         try {
-          const response = await getCurrentUser();
-          if (response.success && response.data) {
-            setUsuario(response.data);
-          }
+          const usuarioData = await obtenerUsuarioPorCorreo(currentUser.email);
+          setUsuario(usuarioData);
         } catch (error) {
           console.error('Error cargando datos del usuario:', error);
-        } finally {
-          setLoading(false);
         }
       }
     };
 
     loadUserData();
-  }, [currentUser, getCurrentUser]);
+  }, [currentUser?.email, obtenerUsuarioPorCorreo]);
 
   const handleSavePerfil = async () => {
     if (!usuario) return;
@@ -80,33 +78,28 @@ const PerfilUsuario = () => {
     setSaveMessage(null);
 
     try {
-      // Preparar datos para actualizar (excluir campos sensibles)
-      const userData = {
-        nombre: usuario.nombre,
-        email: usuario.email,
-        telefono: usuario.telefono,
-        departamento: usuario.departamento,
-        area: usuario.area
+      // Preparar datos para actualizar
+      const userData: UsuarioActualizarRequest = {
+        nombres: usuario.nombres || '',
+        apellidos: usuario.apellidos || '',
+        numeroCelular: usuario.numeroCelular || '',
+        correo: usuario.correo || '',
+        roles: Array.from(usuario.roles || []) as Rol[]
       };
 
-      const response = await updateUser(usuario.id, userData);
+      const usuarioActualizado = await actualizarUsuario(usuario.id, userData);
       
-      if (response.success) {
-        setSaveMessage({ type: 'success', text: 'Perfil actualizado correctamente' });
-        setIsEditing(false);
-        
-        // Actualizar usuario en el contexto si es necesario
-        if (response.data) {
-          setUsuario(response.data);
-        }
-        
-        // Limpiar mensaje después de 3 segundos
-        setTimeout(() => setSaveMessage(null), 3000);
-      } else {
-        setSaveMessage({ type: 'error', text: response.message || 'Error al actualizar el perfil' });
-      }
-    } catch (error) {
-      setSaveMessage({ type: 'error', text: 'Error de conexión al guardar' });
+      setUsuario(usuarioActualizado);
+      setSaveMessage({ type: 'success', text: 'Perfil actualizado correctamente' });
+      setIsEditing(false);
+      
+      // Limpiar mensaje después de 3 segundos
+      setTimeout(() => setSaveMessage(null), 3000);
+    } catch (error: any) {
+      setSaveMessage({ 
+        type: 'error', 
+        text: error.message || 'Error al actualizar el perfil' 
+      });
       console.error('Error guardando perfil:', error);
     } finally {
       setSaving(false);
@@ -146,22 +139,18 @@ const PerfilUsuario = () => {
   };
 
   const getRolColor = (rol: string) => {
-    switch (rol.toLowerCase()) {
-      case 'admin':
-      case 'administrador': 
-        return 'bg-red-100 text-red-800 border border-red-200';
-      case 'revisor': 
-        return 'bg-blue-100 text-blue-800 border border-blue-200';
-      case 'gestor': 
-        return 'bg-green-100 text-green-800 border border-green-200';
-      case 'aprobador': 
-        return 'bg-purple-100 text-purple-800 border border-purple-200';
-      case 'integrator': 
-        return 'bg-orange-100 text-orange-800 border border-orange-200';
-      case 'auditor': 
-        return 'bg-yellow-100 text-yellow-800 border border-yellow-200';
-      default: 
-        return 'bg-gray-100 text-gray-800 border border-gray-200';
+    const rolLower = rol.toLowerCase();
+    
+    if (rolLower.includes('admin')) {
+      return 'bg-red-100 text-red-800 border border-red-200';
+    } else if (rolLower.includes('auditor')) {
+      return 'bg-yellow-100 text-yellow-800 border border-yellow-200';
+    } else if (rolLower.includes('revisor') || rolLower.includes('aprobador')) {
+      return 'bg-blue-100 text-blue-800 border border-blue-200';
+    } else if (rolLower.includes('gestor') || rolLower.includes('integrator')) {
+      return 'bg-green-100 text-green-800 border border-green-200';
+    } else {
+      return 'bg-gray-100 text-gray-800 border border-gray-200';
     }
   };
 
@@ -174,7 +163,7 @@ const PerfilUsuario = () => {
     });
   };
 
-  if (loading) {
+  if (loading && !usuario) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -206,8 +195,7 @@ const PerfilUsuario = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
-        {/* Header */
-        /*
+        {/* Header */}
         <div className="mb-6 md:mb-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
@@ -226,7 +214,7 @@ const PerfilUsuario = () => {
           </div>
         </div>
 
-        {/* Mensajes de éxito/error 
+        {/* Mensajes de éxito/error */}
         {saveMessage && (
           <div className={`mb-6 p-4 rounded-lg ${
             saveMessage.type === 'success' 
@@ -240,7 +228,16 @@ const PerfilUsuario = () => {
           </div>
         )}
 
-        {/* Tabs de navegación 
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-800 rounded-lg">
+            <div className="flex items-center">
+              <span className="mr-2">❌</span>
+              <p>{error}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Tabs de navegación */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm mb-6">
           <div className="border-b border-gray-200">
             <nav className="flex overflow-x-auto">
@@ -287,50 +284,56 @@ const PerfilUsuario = () => {
             </nav>
           </div>
 
-          {/* Contenido de las tabs 
+          {/* Contenido de las tabs */}
           <div className="p-6">
-            {/* Tab: Datos Personales 
+            {/* Tab: Datos Personales */}
             {activeTab === 'datos' && (
               <div className="space-y-6">
                 <div className="flex flex-col md:flex-row gap-6">
-                  {/* Avatar y resumen 
+                  {/* Avatar y resumen */}
                   <div className="md:w-1/3">
                     <div className="bg-gray-50 rounded-xl p-6">
                       <div className="flex flex-col items-center">
                         <div className="h-32 w-32 rounded-full bg-blue-100 flex items-center justify-center mb-4">
                           <span className="text-4xl text-blue-600">
-                            {usuario.nombre?.charAt(0) || '👤'}
+                            {usuario.nombres?.charAt(0) || '👤'}
                           </span>
                         </div>
                         <h2 className="text-xl font-bold text-gray-900 text-center">
-                          {usuario.nombre || 'Sin nombre'}
+                          {usuario.nombres || 'Sin nombre'} {usuario.apellidos || ''}
                         </h2>
-                        <p className="text-gray-600 text-center">{usuario.departamento || usuario.area || 'Sin departamento'}</p>
+                        <p className="text-gray-600 text-center">Usuario del sistema</p>
                         
                         <div className="mt-4 space-y-2 w-full">
                           <div className="flex items-center p-3 bg-white rounded-lg">
                             <span className="text-gray-500 mr-3">📧</span>
-                            <span className="text-sm break-all">{usuario.email || 'Sin email'}</span>
+                            <span className="text-sm break-all">{usuario.correo || 'Sin email'}</span>
                           </div>
                           <div className="flex items-center p-3 bg-white rounded-lg">
                             <span className="text-gray-500 mr-3">📞</span>
-                            <span className="text-sm">{usuario.telefono || 'Sin teléfono'}</span>
-                          </div>
-                          <div className="flex items-center p-3 bg-white rounded-lg">
-                            <span className="text-gray-500 mr-3">🏢</span>
-                            <span className="text-sm">{usuario.area || usuario.departamento || 'Sin área'}</span>
+                            <span className="text-sm">{usuario.numeroCelular || 'Sin teléfono'}</span>
                           </div>
                         </div>
                       </div>
                     </div>
                     
-                    {/* Información del sistema 
+                    {/* Información del sistema */}
                     <div className="mt-4 bg-gray-50 rounded-xl p-4 space-y-3">
                       <div>
-                        <h3 className="font-medium text-gray-900 mb-2">🎭 Rol del sistema</h3>
-                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getRolColor(usuario.rol)}`}>
-                          {usuario.rol || 'Sin rol asignado'}
-                        </span>
+                        <h3 className="font-medium text-gray-900 mb-2">🎭 Roles del sistema</h3>
+                        <div className="flex flex-wrap gap-2">
+                          {Array.from(usuario.roles || []).map((rol, index) => (
+                            <span 
+                              key={index} 
+                              className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getRolColor(rol)}`}
+                            >
+                              {rol}
+                            </span>
+                          ))}
+                          {(!usuario.roles || usuario.roles.length === 0) && (
+                            <span className="text-sm text-gray-500">Sin roles asignados</span>
+                          )}
+                        </div>
                       </div>
                       
                       <div>
@@ -343,13 +346,6 @@ const PerfilUsuario = () => {
                         </div>
                       </div>
                       
-                      {usuario.createdAt && (
-                        <div>
-                          <h3 className="font-medium text-gray-900 mb-1">📅 Miembro desde</h3>
-                          <p className="text-sm text-gray-600">{formatDate(usuario.createdAt)}</p>
-                        </div>
-                      )}
-                      
                       <div>
                         <h3 className="font-medium text-gray-900 mb-1">🆔 ID de Usuario</h3>
                         <p className="text-sm text-gray-600 font-mono">{usuario.id}</p>
@@ -357,7 +353,7 @@ const PerfilUsuario = () => {
                     </div>
                   </div>
 
-                  {/* Formulario de datos 
+                  {/* Formulario de datos */}
                   <div className="md:w-2/3">
                     <div className="flex justify-between items-center mb-6">
                       <h3 className="text-lg font-semibold text-gray-900">Información personal</h3>
@@ -378,35 +374,35 @@ const PerfilUsuario = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Nombre completo
+                            Nombres
                           </label>
                           {isEditing ? (
                             <input
                               type="text"
-                              value={usuario.nombre || ''}
-                              onChange={(e) => setUsuario({...usuario, nombre: e.target.value})}
+                              value={usuario.nombres || ''}
+                              onChange={(e) => setUsuario({...usuario, nombres: e.target.value})}
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                               disabled={saving}
                             />
                           ) : (
-                            <p className="px-3 py-2 bg-gray-50 rounded-lg">{usuario.nombre || 'No especificado'}</p>
+                            <p className="px-3 py-2 bg-gray-50 rounded-lg">{usuario.nombres || 'No especificado'}</p>
                           )}
                         </div>
 
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Correo electrónico
+                            Apellidos
                           </label>
                           {isEditing ? (
                             <input
-                              type="email"
-                              value={usuario.email || ''}
-                              onChange={(e) => setUsuario({...usuario, email: e.target.value})}
+                              type="text"
+                              value={usuario.apellidos || ''}
+                              onChange={(e) => setUsuario({...usuario, apellidos: e.target.value})}
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                               disabled={saving}
                             />
                           ) : (
-                            <p className="px-3 py-2 bg-gray-50 rounded-lg">{usuario.email || 'No especificado'}</p>
+                            <p className="px-3 py-2 bg-gray-50 rounded-lg">{usuario.apellidos || 'No especificado'}</p>
                           )}
                         </div>
                       </div>
@@ -414,55 +410,61 @@ const PerfilUsuario = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Teléfono
+                            Correo electrónico
                           </label>
                           {isEditing ? (
                             <input
-                              type="tel"
-                              value={usuario.telefono || ''}
-                              onChange={(e) => setUsuario({...usuario, telefono: e.target.value})}
+                              type="email"
+                              value={usuario.correo || ''}
+                              onChange={(e) => setUsuario({...usuario, correo: e.target.value})}
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                               disabled={saving}
                             />
                           ) : (
-                            <p className="px-3 py-2 bg-gray-50 rounded-lg">{usuario.telefono || 'No especificado'}</p>
+                            <p className="px-3 py-2 bg-gray-50 rounded-lg">{usuario.correo || 'No especificado'}</p>
                           )}
                         </div>
 
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Departamento
+                            Teléfono
                           </label>
                           {isEditing ? (
                             <input
-                              type="text"
-                              value={usuario.departamento || ''}
-                              onChange={(e) => setUsuario({...usuario, departamento: e.target.value})}
+                              type="tel"
+                              value={usuario.numeroCelular || ''}
+                              onChange={(e) => setUsuario({...usuario, numeroCelular: e.target.value})}
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                               disabled={saving}
                             />
                           ) : (
-                            <p className="px-3 py-2 bg-gray-50 rounded-lg">{usuario.departamento || 'No especificado'}</p>
+                            <p className="px-3 py-2 bg-gray-50 rounded-lg">{usuario.numeroCelular || 'No especificado'}</p>
                           )}
                         </div>
                       </div>
 
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Área
-                        </label>
-                        {isEditing ? (
-                          <input
-                            type="text"
-                            value={usuario.area || ''}
-                            onChange={(e) => setUsuario({...usuario, area: e.target.value})}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            disabled={saving}
-                          />
-                        ) : (
-                          <p className="px-3 py-2 bg-gray-50 rounded-lg">{usuario.area || 'No especificado'}</p>
-                        )}
-                      </div>
+                      {isEditing && (
+                        <div className="pt-4 border-t border-gray-200">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Roles (no editable desde perfil)
+                          </label>
+                          <div className="px-3 py-2 bg-gray-50 rounded-lg">
+                            <div className="flex flex-wrap gap-2">
+                              {Array.from(usuario.roles || []).map((rol, index) => (
+                                <span 
+                                  key={index} 
+                                  className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-200 text-gray-800"
+                                >
+                                  {rol}
+                                </span>
+                              ))}
+                            </div>
+                            <p className="text-xs text-gray-500 mt-2">
+                              Los roles solo pueden ser modificados por un administrador
+                            </p>
+                          </div>
+                        </div>
+                      )}
 
                       {isEditing && (
                         <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
@@ -495,11 +497,11 @@ const PerfilUsuario = () => {
               </div>
             )}
 
-            {/* Tab: Preferencias 
+            {/* Tab: Preferencias */}
             {activeTab === 'preferencias' && (
               <div className="space-y-6">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Notificaciones 
+                  {/* Notificaciones */}
                   <div className="bg-white border border-gray-200 rounded-xl p-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">🔔 Configuración de notificaciones</h3>
                     
@@ -570,7 +572,7 @@ const PerfilUsuario = () => {
                     </div>
                   </div>
 
-                  {/* Configuración general 
+                  {/* Configuración general */}
                   <div className="bg-white border border-gray-200 rounded-xl p-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">⚙️ Configuración general</h3>
                     
@@ -676,11 +678,11 @@ const PerfilUsuario = () => {
               </div>
             )}
 
-            {/* Tab: Seguridad 
+            {/* Tab: Seguridad */}
             {activeTab === 'seguridad' && (
               <div className="space-y-6">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Cambio de contraseña 
+                  {/* Cambio de contraseña */}
                   <div className="bg-white border border-gray-200 rounded-xl p-6">
                     <div className="flex justify-between items-center mb-6">
                       <h3 className="text-lg font-semibold text-gray-900">🔐 Cambio de contraseña</h3>
@@ -762,7 +764,7 @@ const PerfilUsuario = () => {
                       <div className="text-center py-8">
                         <div className="text-4xl mb-4">🔒</div>
                         <p className="text-gray-600">
-                          Tu contraseña se actualizó por última vez el 15/10/2025
+                          Tu contraseña se actualizó por última vez hace 30 días
                         </p>
                         <p className="text-sm text-gray-500 mt-2">
                           Recomendamos cambiar tu contraseña cada 90 días
@@ -771,7 +773,7 @@ const PerfilUsuario = () => {
                     )}
                   </div>
 
-                  {/* Seguridad de la cuenta 
+                  {/* Seguridad de la cuenta */}
                   <div className="bg-white border border-gray-200 rounded-xl p-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-6">🛡️ Seguridad de la cuenta</h3>
                     
@@ -821,7 +823,7 @@ const PerfilUsuario = () => {
               </div>
             )}
 
-            {/* Tab: Historial de Actividad 
+            {/* Tab: Historial de Actividad */}
             {activeTab === 'actividad' && (
               <div className="space-y-6">
                 <div className="flex justify-between items-center">
@@ -895,4 +897,4 @@ const PerfilUsuario = () => {
   );
 };
 
-export default PerfilUsuario;*/
+export default PerfilUsuario;

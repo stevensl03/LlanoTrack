@@ -4,7 +4,7 @@ import type { JSX } from "react";
 
 interface ProtectedRouteProps {
   children: JSX.Element;
-  roles?: string[]; // roles permitidos
+  roles: string[]; // roles permitidos
 }
 
 export const ProtectedRoute = ({ children, roles }: ProtectedRouteProps) => {
@@ -20,9 +20,10 @@ export const ProtectedRoute = ({ children, roles }: ProtectedRouteProps) => {
 
   // 2️⃣ Validar roles si fueron especificados
   if (roles && roles.length > 0) {
-    console.log(roles, user?.roles)
+    console.log("Roles requeridos:", roles);
+    console.log("Roles del usuario:", user?.roles);
     if (!user?.roles || !roles.includes(user?.roles[0])) {
-      return <Navigate to="/not-found-404" replace />;
+      return <Navigate to="/" replace />;
     }
   }
 

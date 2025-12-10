@@ -23,7 +23,7 @@ import {
   AuditorLayout,
   BusquedaGlobal,
  // CentroNotificaciones,
-  //PerfilUsuario,
+  PerfilUsuario,
   AccountsManagementPage,
 } from "./main";
 
@@ -46,11 +46,19 @@ const AppRouter = () => {
         <Route 
           path="/busqueda" 
           element={
-            <ProtectedRoute>
+            <ProtectedRoute roles={["ROLE_ADMIN", "ROLE_AUDITOR"]}>
               <BusquedaGlobal />
             </ProtectedRoute>
           } 
         />
+        <Route path="/not-found-404"
+                element={
+                  <ProtectedRoute roles={["ROLE_ADMIN", "ROLE_AUDITOR"]}>
+                    <NotFound404 />
+                  </ProtectedRoute> 
+                }
+        />
+
         {/*
         <Route 
           path="/notificaciones" 
@@ -60,11 +68,11 @@ const AppRouter = () => {
             </ProtectedRoute>
           } 
         />
-        
+        */}
         <Route 
           path="/perfil" 
           element={
-            <ProtectedRoute>
+            <ProtectedRoute roles={["ROLE_ADMIN", "ROLE_AUDITOR"]}>
               <PerfilUsuario />
             </ProtectedRoute>
           } 
@@ -94,7 +102,7 @@ const AppRouter = () => {
         <Route
           path="/auditor"
           element={
-            <ProtectedRoute roles={["ROLE_ADMIN", "AUDITOR"]}>
+            <ProtectedRoute roles={["ROLE_ADMIN", "ROLE_AUDITOR"]}>
               <Suspense fallback={<SpinnerCircule />}>
                 <AuditorLayout />
               </Suspense>
@@ -107,7 +115,6 @@ const AppRouter = () => {
         </ Route >
 
         {/* Rutas generales */}
-        <Route path="/not-found-404" element={<NotFound404 />} />
         <Route path="/" element={<Navigate to="/auth" />} />
         <Route path="*" element={<Navigate to="/not-found-404" />} />
       </Routes>

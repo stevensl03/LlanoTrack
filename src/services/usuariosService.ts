@@ -163,6 +163,28 @@ class UsuariosService {
     }
   }
 
+  async obtenerUsuarioPorCorreo(correo: string): Promise<UsuarioResponse> {
+  try {
+    const response = await this.api.get<UsuarioResponse>(`${USUARIOS_ENDPOINT}correo/${encodeURIComponent(correo)}`)
+    return response.data
+  } catch (error) {
+    console.error(`Error al obtener usuario por correo ${correo}:`, error)
+    throw error
+  }
+}
+
+async buscarUsuariosPorCorreo(correo: string): Promise<UsuarioResponse[]> {
+  try {
+    const response = await this.api.get<UsuarioResponse[]>(`${USUARIOS_ENDPOINT}buscar/correo`, {
+      params: { correo },
+    })
+    return response.data
+  } catch (error) {
+    console.error("Error al buscar usuarios por correo:", error)
+    throw error
+  }
+}
+
   async obtenerUsuariosPaginados(
     pagina = 0,
     tamano = 10,

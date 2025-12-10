@@ -20,7 +20,7 @@ export { SpinnerCircule } from "../shared/ui/Spinner";
 //Vistas comunes
 export {default as BusquedaGlobal} from "../shared/pages/common/BusquedaGlobal";
 //export {default as CentroNotificaciones} from "../shared/pages/common/CentroNotificaciones";
-//export {default as PerfilUsuario} from "../shared/pages/common/PerfilUsuario";
+export {default as PerfilUsuario} from "../shared/pages/common/PerfilUsuario";
 
 // Router
 export { ProtectedRoute } from "./ProtectedRoute";

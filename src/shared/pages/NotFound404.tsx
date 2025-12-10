@@ -1,10 +1,24 @@
 import { useNavigate } from "react-router";
+import { useAuth } from "../../state/AuthContext"; 
+import type { Rol } from "../../shared/types/authTypes";
+
 
 const NotFound404 = () => {
   const navigate = useNavigate();
+  const auth = useAuth(); 
 
-  const handleGoBack = () => {
-    navigate("/");
+
+  const handleGoDashboard = () => {
+    // Ir al dashboard principal
+  if (auth.user?.roles.includes("ROLE_ADMIN" as Rol)) {
+    navigate("/admin", { replace: true });
+    return;
+  }
+
+  if (auth.user?.roles.includes("ROLE_AUDITOR" as Rol)) {
+      navigate("/auditor", { replace: true });
+      return;
+  }
   };
 
   return (
@@ -24,26 +38,24 @@ const NotFound404 = () => {
 
           <div className="pt-4">
             <button
-              onClick={handleGoBack}
+              onClick={handleGoDashboard}
               className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-6 rounded-lg transition duration-200"
             >
-              Volver al inicio
+              Volver al Dashboard
             </button>
-            
+
             <p className="text-gray-400 text-sm mt-4">
               Si crees que esto es un error, contacta al administrador.
             </p>
           </div>
         </div>
       </div>
-      
+
       <p className="mt-8 text-gray-400 text-sm">
         &copy; {new Date().getFullYear()} Llanogas
       </p>
     </div>
   );
 };
-console.log("Historial length:", window.history.length);
-console.log("Document referrer:", document.referrer);
-console.log("Puede volver atrás:", window.history.length > 1);
+
 export default NotFound404;
