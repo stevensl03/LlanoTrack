@@ -4,26 +4,42 @@ import { useNavigate } from "react-router";
 import { useAuth } from "../../state/AuthContext"; 
 import type { Rol } from "../../shared/types/authTypes";
 
-export const useLogin = () => {
+interface UseLoginReturn {
+  email: string;
+  password: string;
+  showPassword: boolean;
+  rememberMe: boolean;
+  error: string | null;
+  isLoading: boolean;
+  setEmail: (value: string) => void;
+  setPassword: (value: string) => void;
+  setRememberMe: (value: boolean) => void;
+  togglePasswordVisibility: () => void;
+  handleSubmit: (e: React.FormEvent) => Promise<void>;
+  clearError: () => void;
+}
+
+export const useLogin = (): UseLoginReturn => {
     const navigate = useNavigate();
     const auth = useAuth(); 
     
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
-    const [rememberMe, setRememberMe] = useState(false);
+    const [email, setEmail] = useState<string>('');
+    const [password, setPassword] = useState<string>('');
+    const [showPassword, setShowPassword] = useState<boolean>(false);
+    const [rememberMe, setRememberMe] = useState<boolean>(false);
     const [localError, setLocalError] = useState<string | null>(null);
+    const [isProcessing, setIsProcessing] = useState<boolean>(false);
  
     const togglePasswordVisibility = useCallback(() => {
         setShowPassword(prev => !prev);
     }, []);
 
-    const handleSubmit = useCallback(async (e: React.FormEvent) => {
+    const handleSubmit = useCallback(async (e: React.FormEvent): Promise<void> => {
         e.preventDefault();
         setLocalError(null);
         
         // Validaciones
-        if (!email || !password) {
+        if (!email.trim() || !password.trim()) {
             setLocalError("Por favor, complete todos los campos");
             return;
         }
@@ -33,53 +49,63 @@ export const useLogin = () => {
             return;
         }
 
+        setIsProcessing(true);
+
         try {
+            // 1. Realizar login
             await auth.login(email, password);
-
-            console.log("Roles del usuario:", auth.user?.roles);
-
-            // -------------------------------
-            // REDIRECCIÓN SEGÚN ROL
-            // -------------------------------
-            if (auth.user?.roles.includes("ROLE_ADMIN" as Rol)) {
-                navigate("/admin", { replace: true });
-                return;
+            
+            // 2. Esperar a que el contexto se actualice completamente
+            // El login exitoso ya debe haber actualizado el estado del contexto
+            // Si necesitas esperar, hazlo aquí:
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            // 3. Verificar si el usuario está autenticado y tiene roles
+            if (!auth.isAuthenticated) {
+                throw new Error("No se pudo completar la autenticación");
             }
-
-            if (auth.user?.roles.includes("ROLE_AUDITOR" as Rol)) {
-                navigate("/auditor", { replace: true });
-                return;
+            
+            if (!auth.user) {
+                throw new Error("No se pudo obtener información del usuario");
             }
+            
+            const userRoles = auth.user.roles;
+            
+            console.log("Usuario autenticado:", auth.user.email);
+            console.log("Roles del usuario:", userRoles);
 
-
-
-            // Si no tiene roles válidos
-            navigate("/", { replace: true });
-
-            // Guardar email si rememberMe está activado
+            // 4. Guardar email si rememberMe está activado
             if (rememberMe) {
                 localStorage.setItem("rememberedEmail", email);
             } else {
                 localStorage.removeItem("rememberedEmail");
             }
 
-        } catch (err: any) {
-            const errorMessage = err.message || "Error en el inicio de sesión";
+            // 5. Redirigir según el rol - SIN DEPENDER DE auth.user aquí
+            // La redirección se manejará en el componente (ver abajo)
+            
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error 
+                ? err.message 
+                : "Error en el inicio de sesión";
 
             if (
                 errorMessage.includes("Credenciales inválidas") ||
-                errorMessage.includes("401")
+                errorMessage.includes("401") ||
+                errorMessage.toLowerCase().includes("unauthorized")
             ) {
                 setLocalError("Correo o contraseña incorrectos");
-            } else if (errorMessage.includes("conectar")) {
+            } else if (errorMessage.includes("conectar") || errorMessage.includes("Network Error")) {
                 setLocalError("No se pudo conectar con el servidor");
             } else {
                 setLocalError(errorMessage);
             }
 
             console.error("Login error:", err);
+        } finally {
+            setIsProcessing(false);
         }
-    }, [email, password, rememberMe, auth.login, navigate, auth.user]);
+    }, [email, password, rememberMe, auth]);
 
     // Cargar email recordado
     useEffect(() => {
@@ -94,22 +120,29 @@ export const useLogin = () => {
         setLocalError(null);
     }, []);
 
+    const handleSetEmail = useCallback((value: string) => {
+        setEmail(value);
+    }, []);
+
+    const handleSetPassword = useCallback((value: string) => {
+        setPassword(value);
+    }, []);
+
+    const handleSetRememberMe = useCallback((value: boolean) => {
+        setRememberMe(value);
+    }, []);
+
     return {
-        // Estado
         email,
         password,
         showPassword,
         rememberMe,
-        error: localError || (auth.user === null && auth.isAuthenticated === false ? null : undefined),
-        isLoading: auth.isLoading,
-        
-        // Setters
-        setEmail,
-        setPassword,
-        setRememberMe,
+        error: localError,
+        isLoading: auth.isLoading || isProcessing,
+        setEmail: handleSetEmail,
+        setPassword: handleSetPassword,
+        setRememberMe: handleSetRememberMe,
         togglePasswordVisibility,
-        
-        // Funciones
         handleSubmit,
         clearError: clearLocalError,
     };

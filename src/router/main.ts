@@ -18,7 +18,6 @@ export { default as NotFound404 } from "../shared/pages/NotFound404";
 export { SpinnerCircule } from "../shared/ui/Spinner";
 
 //Vistas comunes
-export {default as BusquedaGlobal} from "../shared/pages/common/BusquedaGlobal";
 //export {default as CentroNotificaciones} from "../shared/pages/common/CentroNotificaciones";
 export {default as PerfilUsuario} from "../shared/pages/common/PerfilUsuario";
 
@@ -38,8 +37,9 @@ export const RequestTypesPage = lazy(() => import("../modules/administrador/page
 export const AccountsManagementPage = lazy(() => import("../modules/administrador/pages/CuentaAdminPage"));
 
 // Lazy Imports - Auditor
-export const DashboardPage = lazy(() => import("../modules/auditor/pages/DashboardPage"));
-export const TrazabilidadPage = lazy(() => import("../modules/auditor/pages/TrazabilidadPage"));
+export const ResumenGeneralPage = lazy(() => import("../modules/auditor/pages/ResumenGeneralPage"));
+export const FiltrosAvanzadosPage = lazy(() => import("../modules/auditor/pages/FiltrosAvanzadosPage"));
+export const ListaCorreoPage = lazy(() => import("../modules/auditor/pages/ListaCorreosPage"));
 
 
 

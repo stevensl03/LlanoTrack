@@ -18,10 +18,10 @@ import {
   AdminDashboardPage,
   UsersManagementPage,
   LandingPage,
-  DashboardPage,
-  TrazabilidadPage,
+  ResumenGeneralPage,
   AuditorLayout,
-  BusquedaGlobal,
+  FiltrosAvanzadosPage,
+  ListaCorreoPage,
  // CentroNotificaciones,
   PerfilUsuario,
   AccountsManagementPage,
@@ -43,14 +43,7 @@ const AppRouter = () => {
 
         {/* Rutas protegidas */}
         {/*Rutas comunes */}
-        <Route 
-          path="/busqueda" 
-          element={
-            <ProtectedRoute roles={["ROLE_ADMIN", "ROLE_AUDITOR"]}>
-              <BusquedaGlobal />
-            </ProtectedRoute>
-          } 
-        />
+
         <Route path="/not-found-404"
                 element={
                   <ProtectedRoute roles={["ROLE_ADMIN", "ROLE_AUDITOR"]}>
@@ -110,8 +103,10 @@ const AppRouter = () => {
           }
         >
           <Route index element={<LandingPage />} />
-          <Route path="/auditor/dashboard" element={<DashboardPage />} />
-          <Route path="/auditor/trazabilidad/:id" element={<TrazabilidadPage />} />
+          <Route path="/auditor/resumenGeneral" element={<ResumenGeneralPage />} />
+          <Route path="/auditor/filtrosAvanzados" element={<FiltrosAvanzadosPage />} />
+          <Route path="/auditor/listaCorreo" element={<ListaCorreoPage />} />
+
         </ Route >
 
         {/* Rutas generales */}

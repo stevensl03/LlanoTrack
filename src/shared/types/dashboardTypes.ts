@@ -65,3 +65,173 @@ export const FlujoEtapa = {
 } as const;
 
 export type FlujoEtapa = typeof FlujoEtapa[keyof typeof FlujoEtapa];
+// Tipos para filtros
+// En dashboardTypes.ts (además de los tipos existentes)
+
+// Tipos para opciones de filtro
+export interface OpcionFiltro {
+  id: number | string | null;
+  nombre: string;
+}
+
+export interface Gestor extends OpcionFiltro {
+  id: number | null;
+  nombre: string;
+}
+
+export interface TipoSolicitud extends OpcionFiltro {
+  id: number | null;
+  nombre: string;
+}
+
+export interface Entidad extends OpcionFiltro {
+  id: number | null;
+  nombre: string;
+}
+
+export interface Estado extends OpcionFiltro {
+  id: string;
+  nombre: string;
+}
+
+export interface Urgencia extends OpcionFiltro {
+  id: string;
+  nombre: string;
+}
+
+export interface OpcionesFiltroResponse {
+  gestores: Gestor[];
+  entidades: Entidad[];
+  estados: Estado[];
+  tiposSolicitud: TipoSolicitud[];
+  urgencias: Urgencia[];
+  camposBusqueda: string[];
+}
+
+// Tipos para filtros
+export interface FiltroCorreoRequestDTO {
+  gestorId?: number | null;
+  entidadId?: number | null;
+  estado?: string;
+  tipoSolicitudId?: number | null;
+  urgencia?: string;
+  campoBusqueda?: string;
+  valorBusqueda?: string;
+  fechaInicio?: string | null;
+  fechaFin?: string | null;
+}
+
+// Tipos para correos filtrados
+export interface FlujoCorreoDTO {
+  fechaAsignacion: string;
+  correoUsuario: string;
+  etapa: string | null;
+  idUsuario: number;
+  idFlujo: number;
+  nombreUsuario: string;
+  estaActivo: boolean;
+  fechaFinalizacion: string | null;
+}
+
+export interface CuentaDTO {
+  correo: string;
+  id: number;
+  entidadId?: number;
+  entidadNombre?: string;
+  nombre: string;
+}
+
+export interface TipoSolicitudDTO {
+  id: number;
+  nombre: string;
+}
+
+export interface CorreoFiltradoDTO {
+  id: string;
+  asunto: string;
+  estado: string | null;
+  urgencia: string | null;
+  fechaRecepcion: string;
+  fechaRespuesta: string | null;
+  radicadoEntrada: string | null;
+  radicadoSalida: string | null;
+  plazoRespuestaEnDias: number | null;
+  cuenta: CuentaDTO | null;
+  tipoSolicitud: TipoSolicitudDTO | null;
+  flujos: FlujoCorreoDTO[];
+  fechaLimite?: string;
+  estaAtrasado?: boolean;
+}
+
+export interface RespuestaFiltroCorreos {
+  correos: CorreoFiltradoDTO[];
+  paginaActual: number;
+  totalPaginas: number;
+  totalElementos: number;
+  tamanoPagina: number;
+  esPrimeraPagina: boolean;
+  esUltimaPagina: boolean;
+  totalElementosPagina: number;
+}
+
+// Tipo para estadísticas completas
+export interface DashboardEstadisticasCompletasDTO {
+  // Basado en el nombre del controlador, es probable que sea similar a DashboardEstadisticasResponse
+  // Lo dejo como any para que se ajuste a la respuesta real
+  [key: string]: any;
+}
+
+// dashboardTypes.ts (agregar o actualizar)
+
+// Tipos para correos filtrados basados en la respuesta real
+export interface FlujoCorreoDTO {
+  fechaAsignacion: string;
+  correoUsuario: string;
+  etapa: string | null;
+  idUsuario: number;
+  idFlujo: number;
+  nombreUsuario: string;
+  estaActivo: boolean;
+  fechaFinalizacion: string | null;
+}
+
+export interface CuentaDTO {
+  correo: string;
+  id: number;
+  entidadId?: number;
+  entidadNombre?: string;
+  nombre: string;
+}
+
+export interface TipoSolicitudDTO {
+  id: number;
+  nombre: string;
+}
+
+export interface CorreoFiltradoDTO {
+  id: string;
+  asunto: string;
+  estado: string | null;
+  urgencia: string | null;
+  fechaRecepcion: string;
+  fechaRespuesta: string | null;
+  radicadoEntrada: string | null;
+  radicadoSalida: string | null;
+  plazoRespuestaEnDias: number | null;
+  cuenta: CuentaDTO | null;
+  tipoSolicitud: TipoSolicitudDTO | null;
+  flujos: FlujoCorreoDTO[];
+  fechaLimite?: string;
+  estaAtrasado?: boolean;
+}
+
+export interface RespuestaFiltroCorreos {
+  correos: CorreoFiltradoDTO[];
+  paginaActual: number;
+  totalPaginas: number;
+  totalElementos: number;
+  tamanoPagina: number;
+  esPrimeraPagina: boolean;
+  esUltimaPagina: boolean;
+  totalElementosPagina: number;
+}

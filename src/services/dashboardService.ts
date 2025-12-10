@@ -2,7 +2,11 @@ import axios from "axios";
 import type { AxiosResponse } from "axios";
 import type {
     DashboardEstadisticasResponse,
-    MetricaResponse
+    MetricaResponse,
+    DashboardEstadisticasCompletasDTO,
+    OpcionesFiltroResponse,
+    FiltroCorreoRequestDTO,
+    RespuestaFiltroCorreos
 } from "../shared/types/dashboardTypes";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api/v1";
@@ -84,6 +88,75 @@ class DashboardService {
             throw error;
         }
     }
+    /**
+ * Obtener estadísticas completas del dashboard
+ * (Endpoint: GET /dashboard/estadisticas)
+ */
+async obtenerEstadisticasCompletas(): Promise<DashboardEstadisticasCompletasDTO> {
+    try {
+        const response = await this.api.get<DashboardEstadisticasCompletasDTO>("/dashboard/estadisticas");
+        return response.data;
+    } catch (error) {
+        console.error("Error al obtener estadísticas completas del dashboard:", error);
+        throw error;
+    }
+}
+
+/**
+ * Cargar opciones de filtro para el dashboard
+ * (Endpoint: GET /dashboard/opciones-filtro)
+ */
+async cargarOpcionesFiltro(): Promise<OpcionesFiltroResponse> {
+    try {
+        const response = await this.api.get<OpcionesFiltroResponse>("/dashboard/opciones-filtro");
+        return response.data;
+    } catch (error) {
+        console.error("Error al cargar opciones de filtro:", error);
+        throw error;
+    }
+}
+
+/**
+ * Aplicar filtros a los correos
+ * (Endpoint: POST /dashboard/filtrar)
+ */
+async aplicarFiltros(
+    filtro: FiltroCorreoRequestDTO,
+    pagina: number = 0,
+    tamano: number = 20,
+    ordenarPor: string = "fechaRecepcion",
+    direccion: string = "DESC"
+): Promise<RespuestaFiltroCorreos> {
+    try {
+        const response = await this.api.post<RespuestaFiltroCorreos>(
+            `/dashboard/filtrar?pagina=${pagina}&tamano=${tamano}&ordenarPor=${ordenarPor}&direccion=${direccion}`,
+            filtro
+        );
+        return response.data;
+    } catch (error) {
+        console.error("Error al aplicar filtros:", error);
+        throw error;
+    }
+}
+
+/**
+ * Limpiar filtros y obtener datos sin filtros
+ * (Endpoint: POST /dashboard/limpiar-filtros)
+ */
+async limpiarFiltros(
+    pagina: number = 0,
+    tamano: number = 20
+): Promise<RespuestaFiltroCorreos> {
+    try {
+        const response = await this.api.post<RespuestaFiltroCorreos>(
+            `/dashboard/limpiar-filtros?pagina=${pagina}&tamano=${tamano}`
+        );
+        return response.data;
+    } catch (error) {
+        console.error("Error al limpiar filtros:", error);
+        throw error;
+    }
+}   
 
     /**
      * Obtener todas las métricas del dashboard en una sola llamada
@@ -113,6 +186,8 @@ class DashboardService {
             throw error;
         }
     }
+
+    
 }
 
 export const dashboardService = new DashboardService();

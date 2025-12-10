@@ -29,7 +29,9 @@ export interface AuthContextType {
 
 
 const menuOptions = [
-    { id: "dashboard", name: "Panel", path: "/auditor/dashboard", icon: "📧" },
+    { id: "resumenGeneral", name: "resumenGeneral", path: "/auditor/resumenGeneral", icon: "📧" },
+    { id: "filtrosAvanzados", name: "filtrosAvanzados", path: "/auditor/filtrosAvanzados", icon: "🔍" },
+    { id: "listaCorreo", name: "listaCorreo", path: "/auditor/listaCorreo", icon: "🔍" },
 ]
 const footerOptions = [
     { id: "help", name: "Ayuda", path: "/auditor", icon: "❓" },

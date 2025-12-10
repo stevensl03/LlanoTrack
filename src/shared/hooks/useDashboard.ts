@@ -4,37 +4,87 @@ import type {
     DashboardEstadisticasResponse,
     MetricaResponse,
     DistribucionItem,
-    DashboardData
+    DashboardData,
+    OpcionesFiltroResponse,
+    FiltroCorreoRequestDTO,
+    RespuestaFiltroCorreos,
+    CorreoFiltradoDTO,
+    DashboardEstadisticasCompletasDTO
 } from '../types/dashboardTypes';
 
 interface UseDashboardReturn {
-    // Datos
+    // Datos del dashboard principal
     estadisticas: DashboardEstadisticasResponse | null;
     kpis: MetricaResponse[];
     distribucionEstado: DistribucionItem[];
     distribucionEtapa: DistribucionItem[];
     dashboardData: DashboardData | null;
     
-    // Estado
+    // Datos de filtros
+    opcionesFiltro: OpcionesFiltroResponse | null;
+    correosFiltrados: CorreoFiltradoDTO[];
+    filtrosAplicados: FiltroCorreoRequestDTO | null;
+    paginacion: {
+        paginaActual: number;
+        totalPaginas: number;
+        totalElementos: number;
+        tamanoPagina: number;
+        esPrimeraPagina: boolean;
+        esUltimaPagina: boolean;
+        totalElementosPagina: number;
+    } | null;
+    estadisticasCompletas: DashboardEstadisticasCompletasDTO | null;
+    
+    // Estados de carga y error
     loading: boolean;
     error: string | null;
     
-    // Métodos
+    // Métodos principales
     cargarDashboard: () => Promise<void>;
     cargarEstadisticas: () => Promise<void>;
     cargarKPIs: () => Promise<void>;
     cargarDistribuciones: () => Promise<void>;
     actualizarDashboard: () => Promise<void>;
+    
+    // Métodos de filtros
+    cargarOpcionesFiltro: () => Promise<void>;
+    aplicarFiltros: (
+        filtro: FiltroCorreoRequestDTO,
+        pagina?: number,
+        tamano?: number,
+        ordenarPor?: string,
+        direccion?: string
+    ) => Promise<RespuestaFiltroCorreos>;
+    limpiarFiltros: (pagina?: number, tamano?: number) => Promise<RespuestaFiltroCorreos>;
+    cargarEstadisticasCompletas: () => Promise<void>;
+    
+    // Utilidades
     limpiarError: () => void;
+    resetearFiltros: () => void;
 }
 
 export const useDashboard = (): UseDashboardReturn => {
-    // Estados para datos
+    // Estados para datos del dashboard principal
     const [estadisticas, setEstadisticas] = useState<DashboardEstadisticasResponse | null>(null);
     const [kpis, setKpis] = useState<MetricaResponse[]>([]);
     const [distribucionEstado, setDistribucionEstado] = useState<DistribucionItem[]>([]);
     const [distribucionEtapa, setDistribucionEtapa] = useState<DistribucionItem[]>([]);
     const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+    
+    // Estados para datos de filtros
+    const [opcionesFiltro, setOpcionesFiltro] = useState<OpcionesFiltroResponse | null>(null);
+    const [correosFiltrados, setCorreosFiltrados] = useState<CorreoFiltradoDTO[]>([]);
+    const [filtrosAplicados, setFiltrosAplicados] = useState<FiltroCorreoRequestDTO | null>(null);
+    const [paginacion, setPaginacion] = useState<{
+        paginaActual: number;
+        totalPaginas: number;
+        totalElementos: number;
+        tamanoPagina: number;
+        esPrimeraPagina: boolean;
+        esUltimaPagina: boolean;
+        totalElementosPagina: number;
+    } | null>(null);
+    const [estadisticasCompletas, setEstadisticasCompletas] = useState<DashboardEstadisticasCompletasDTO | null>(null);
     
     // Estados para UI
     const [loading, setLoading] = useState<boolean>(true);
@@ -51,7 +101,7 @@ export const useDashboard = (): UseDashboardReturn => {
         })).sort((a, b) => b.valor - a.valor);
     }, []);
 
-    // Función para construir datos del dashboard
+    // Función para construir datos del dashboard principal
     const construirDashboardData = useCallback((): DashboardData | null => {
         if (!estadisticas || kpis.length === 0) {
             return null;
@@ -67,7 +117,8 @@ export const useDashboard = (): UseDashboardReturn => {
         };
     }, [estadisticas, kpis, transformarDistribucion]);
 
-    // Cargar todas las estadísticas
+    // ========== MÉTODOS PRINCIPALES DEL DASHBOARD ==========
+
     const cargarEstadisticas = useCallback(async (): Promise<void> => {
         setLoading(true);
         setError(null);
@@ -82,7 +133,6 @@ export const useDashboard = (): UseDashboardReturn => {
         }
     }, []);
 
-    // Cargar KPIs
     const cargarKPIs = useCallback(async (): Promise<void> => {
         setLoading(true);
         setError(null);
@@ -97,7 +147,6 @@ export const useDashboard = (): UseDashboardReturn => {
         }
     }, []);
 
-    // Cargar distribuciones
     const cargarDistribuciones = useCallback(async (): Promise<void> => {
         setLoading(true);
         setError(null);
@@ -117,7 +166,6 @@ export const useDashboard = (): UseDashboardReturn => {
         }
     }, [transformarDistribucion]);
 
-    // Cargar todo el dashboard
     const cargarDashboard = useCallback(async (): Promise<void> => {
         setLoading(true);
         setError(null);
@@ -148,54 +196,182 @@ export const useDashboard = (): UseDashboardReturn => {
         }
     }, [transformarDistribucion]);
 
-    // Actualizar dashboard
     const actualizarDashboard = useCallback(async (): Promise<void> => {
         await cargarDashboard();
     }, [cargarDashboard]);
 
-    // Limpiar error
+    // ========== MÉTODOS DE FILTROS ==========
+
+    const cargarOpcionesFiltro = useCallback(async (): Promise<void> => {
+        setLoading(true);
+        setError(null);
+        try {
+            const data = await dashboardService.cargarOpcionesFiltro();
+            setOpcionesFiltro(data);
+        } catch (err: any) {
+            setError(err.message || 'Error al cargar opciones de filtro');
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    const aplicarFiltros = useCallback(async (
+        filtro: FiltroCorreoRequestDTO,
+        pagina: number = 0,
+        tamano: number = 20,
+        ordenarPor: string = "fechaRecepcion",
+        direccion: string = "DESC"
+    ): Promise<RespuestaFiltroCorreos> => {
+        setLoading(true);
+        setError(null);
+        try {
+            const respuesta = await dashboardService.aplicarFiltros(
+                filtro,
+                pagina,
+                tamano,
+                ordenarPor,
+                direccion
+            );
+            
+            // Actualizar estados con la respuesta
+            setCorreosFiltrados(respuesta.correos);
+            setFiltrosAplicados(filtro);
+            setPaginacion({
+                paginaActual: respuesta.paginaActual,
+                totalPaginas: respuesta.totalPaginas,
+                totalElementos: respuesta.totalElementos,
+                tamanoPagina: respuesta.tamanoPagina,
+                esPrimeraPagina: respuesta.esPrimeraPagina,
+                esUltimaPagina: respuesta.esUltimaPagina,
+                totalElementosPagina: respuesta.totalElementosPagina
+            });
+            
+            return respuesta;
+        } catch (err: any) {
+            setError(err.message || 'Error al aplicar filtros');
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    const limpiarFiltros = useCallback(async (
+        pagina: number = 0,
+        tamano: number = 20
+    ): Promise<RespuestaFiltroCorreos> => {
+        setLoading(true);
+        setError(null);
+        try {
+            const respuesta = await dashboardService.limpiarFiltros(pagina, tamano);
+            
+            // Actualizar estados con la respuesta limpia
+            setCorreosFiltrados(respuesta.correos);
+            setFiltrosAplicados(null);
+            setPaginacion({
+                paginaActual: respuesta.paginaActual,
+                totalPaginas: respuesta.totalPaginas,
+                totalElementos: respuesta.totalElementos,
+                tamanoPagina: respuesta.tamanoPagina,
+                esPrimeraPagina: respuesta.esPrimeraPagina,
+                esUltimaPagina: respuesta.esUltimaPagina,
+                totalElementosPagina: respuesta.totalElementosPagina
+            });
+            
+            return respuesta;
+        } catch (err: any) {
+            setError(err.message || 'Error al limpiar filtros');
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    const cargarEstadisticasCompletas = useCallback(async (): Promise<void> => {
+        setLoading(true);
+        setError(null);
+        try {
+            const data = await dashboardService.obtenerEstadisticasCompletas();
+            setEstadisticasCompletas(data);
+        } catch (err: any) {
+            setError(err.message || 'Error al cargar estadísticas completas');
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    // ========== UTILIDADES ==========
+
     const limpiarError = useCallback((): void => {
         setError(null);
     }, []);
 
-    // Cargar datos iniciales
+    const resetearFiltros = useCallback((): void => {
+        setCorreosFiltrados([]);
+        setFiltrosAplicados(null);
+        setPaginacion(null);
+    }, []);
+
+    // ========== EFECTOS ==========
+
+    // Cargar datos iniciales del dashboard
     useEffect(() => {
         const inicializarDashboard = async () => {
             try {
                 await cargarDashboard();
+                await cargarOpcionesFiltro();
             } catch (error) {
                 console.error('Error al inicializar dashboard:', error);
             }
         };
 
         inicializarDashboard();
-    }, [cargarDashboard]);
+    }, [cargarDashboard, cargarOpcionesFiltro]);
 
-    // Actualizar dashboardData cuando cambian los datos
+    // Actualizar dashboardData cuando cambian los datos principales
     useEffect(() => {
         const data = construirDashboardData();
         setDashboardData(data);
     }, [estadisticas, kpis, construirDashboardData]);
 
+    // ========== RETORNO DEL HOOK ==========
+
     return {
-        // Datos
+        // Datos del dashboard principal
         estadisticas,
         kpis,
         distribucionEstado,
         distribucionEtapa,
         dashboardData,
         
-        // Estado
+        // Datos de filtros
+        opcionesFiltro,
+        correosFiltrados,
+        filtrosAplicados,
+        paginacion,
+        estadisticasCompletas,
+        
+        // Estados de carga y error
         loading,
         error,
         
-        // Métodos
+        // Métodos principales
         cargarDashboard,
         cargarEstadisticas,
         cargarKPIs,
         cargarDistribuciones,
         actualizarDashboard,
-        limpiarError
+        
+        // Métodos de filtros
+        cargarOpcionesFiltro,
+        aplicarFiltros,
+        limpiarFiltros,
+        cargarEstadisticasCompletas,
+        
+        // Utilidades
+        limpiarError,
+        resetearFiltros
     };
 };
 

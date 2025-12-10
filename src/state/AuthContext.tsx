@@ -1,9 +1,9 @@
-// contexts/AuthContext.tsx (actualizado)
+// contexts/AuthContext.tsx
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
 import type { ReactNode } from "react";
 import { tokenStorage } from "../store/tokenStorage";
 import { userStorage } from "../store/userStorage";
-import type { AuthUser } from "../shared/types/authTypes";
+import type { AuthUser, Rol } from "../shared/types/authTypes";
 import { authService } from "../services/authService";
 
 interface AuthContextType {
@@ -26,9 +26,14 @@ const hasCookie = (name: string): boolean => {
 };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<AuthUser | null>(() => userStorage.get() as AuthUser | null);
-  const [token, setToken] = useState<string | null>(tokenStorage.get());
+  const [user, setUser] = useState<AuthUser | null>(() => {
+    const savedUser = userStorage.get();
+    return savedUser ? (savedUser as AuthUser) : null;
+  });
+  
+  const [token, setToken] = useState<string | null>(() => tokenStorage.get());
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
   // Verificar sesión al cargar la app
   useEffect(() => {
@@ -55,26 +60,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           
           setUser(freshUser);
           userStorage.save(freshUser);
-          // Nota: El token está en cookies httpOnly, no podemos accederlo
-          // Solo marcamos que hay token
           setToken('cookie-token-present');
+          setIsAuthenticated(true);
           
         } catch (error) {
           console.error('Error al verificar sesión:', error);
           // Limpiar estado local si el refresh falla
           setUser(null);
           setToken(null);
+          setIsAuthenticated(false);
           userStorage.remove();
           tokenStorage.remove();
         }
       } else if (savedUser && savedToken) {
         // Tenemos datos locales pero no cookies, mantener sesión local
-        setUser(savedUser as AuthUser | null);
+        setUser(savedUser as AuthUser);
         setToken(savedToken);
+        setIsAuthenticated(true);
       } else {
         // No hay datos de sesión
         setUser(null);
         setToken(null);
+        setIsAuthenticated(false);
         userStorage.remove();
         tokenStorage.remove();
       }
@@ -85,7 +92,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     checkInitialAuth();
   }, []);
 
-  const login = useCallback(async (email: string, password: string) => {
+  const login = useCallback(async (email: string, password: string): Promise<void> => {
     setIsLoading(true);
     try {
       const response = await authService.login({ email, password });
@@ -97,31 +104,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       };
       
       setUser(userData);
-      setToken('cookie-token-present'); // Marcamos que hay token en cookies
+      setToken('cookie-token-present');
+      setIsAuthenticated(true);
       userStorage.save(userData);
       tokenStorage.save('cookie-token-present');
       
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido en login';
       setUser(null);
       setToken(null);
+      setIsAuthenticated(false);
       userStorage.remove();
       tokenStorage.remove();
-      throw error;
+      throw new Error(errorMessage);
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  const logout = useCallback(async () => {
+  const logout = useCallback(async (): Promise<void> => {
     setIsLoading(true);
     try {
       await authService.logout();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error en logout del servidor:', error);
     } finally {
       // Siempre limpiamos el estado local
       setUser(null);
       setToken(null);
+      setIsAuthenticated(false);
       userStorage.remove();
       tokenStorage.remove();
       setIsLoading(false);
@@ -139,13 +150,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       setUser(userData);
       setToken('cookie-token-present');
+      setIsAuthenticated(true);
       userStorage.save(userData);
       
       return true;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error al refrescar sesión:', error);
       setUser(null);
       setToken(null);
+      setIsAuthenticated(false);
       userStorage.remove();
       tokenStorage.remove();
       return false;
@@ -156,38 +169,40 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const handleStorage = (e: StorageEvent) => {
       if (e.key === "auth_token") {
-        setToken(tokenStorage.get());
+        const newToken = tokenStorage.get();
+        setToken(newToken);
+        setIsAuthenticated(!!(user && newToken));
       }
 
       if (e.key === "user_data") {
-        setUser(userStorage.get() as AuthUser | null);
+        const newUser = userStorage.get() as AuthUser | null;
+        setUser(newUser);
+        setIsAuthenticated(!!(newUser && token));
       }
     };
 
     window.addEventListener("storage", handleStorage);
     return () => window.removeEventListener("storage", handleStorage);
-  }, []);
+  }, [user, token]);
 
-  const isAuthenticated = Boolean(user && token);
+  const value: AuthContextType = {
+    isAuthenticated,
+    user,
+    token,
+    isLoading,
+    login,
+    logout,
+    refreshSession
+  };
 
   return (
-    <AuthContext.Provider
-      value={{
-        isAuthenticated,
-        user,
-        token,
-        isLoading,
-        login,
-        logout,
-        refreshSession
-      }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => {
+export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error("useAuth debe ser usado dentro de un AuthProvider");

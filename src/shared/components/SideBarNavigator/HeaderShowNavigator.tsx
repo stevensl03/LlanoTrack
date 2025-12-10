@@ -35,9 +35,9 @@ const HeaderShowNavigator = ({ showAll, setShowAll, user }: {
 
         {/* Right side */}
         <div className="flex items-center gap-3">
-          <Link  className="p-2 text-gray-600 hover:bg-gray-100 rounded-full" to="/notificaciones">
+          {/*<Link  className="p-2 text-gray-600 hover:bg-gray-100 rounded-full" to="/notificaciones">
             🔔
-          </Link>
+          </Link>*/}
           <Link  className="p-2 text-gray-600 hover:bg-gray-100 rounded-full" to="/busqueda">
             🔍
           </Link>
