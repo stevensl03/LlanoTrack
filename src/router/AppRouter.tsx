@@ -24,6 +24,7 @@ import {
   BusquedaGlobal,
   CentroNotificaciones,
   PerfilUsuario,
+  AccountsManagementPage,
 } from "./main";
 
 const AppRouter = () => {
@@ -85,6 +86,7 @@ const AppRouter = () => {
           <Route path="/admin/usersConfig" element={<UsersManagementPage />} />
           <Route path="/admin/entitiesConfig" element={<EntitiesManagementPage />} />
           <Route path="/admin/requestTypesConfig" element={<RequestTypesPage />} />
+          <Route path="/admin/accountsConfig" element={<AccountsManagementPage />} />
         </Route>
 
 

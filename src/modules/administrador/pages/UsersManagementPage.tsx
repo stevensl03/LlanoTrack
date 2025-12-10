@@ -1,13 +1,24 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { useUsuarios } from "../../../shared/hooks/useUsuarios"
 import type { UsuarioResponse, Rol } from "../../../shared/types/usuarioTypes"
 import { Rol as RolEnum } from "../../../shared/types/usuarioTypes"
 import UserModal from "../components/modal/UserModal"
-import UsersTable from "../components/modal/UsersTable"
-import UsersHeader from "../components/modal/UsersHeader"
+import UsersTable from "../components/users/UsersTable"
+import UsersHeader from "../components/users/UsersHeader"
+
+interface UsuarioParaTabla {
+  id: string
+  nombre: string
+  email: string
+  rol: string
+  roles: string[]
+  activo: boolean
+  numeroCelular: string
+  datosCompletos: UsuarioResponse
+}
 
 const UsersManagementPage: React.FC = () => {
   const {
@@ -19,7 +30,6 @@ const UsersManagementPage: React.FC = () => {
     crearUsuario,
     actualizarUsuario,
     eliminarUsuario,
-    // 🔥 AGREGAR ESTOS MÉTODOS (debes tenerlos en tu hook):
     activarUsuario,
     desactivarUsuario,
     cambiarEstadoUsuario,
@@ -31,6 +41,7 @@ const UsersManagementPage: React.FC = () => {
     cambiarTamanoPagina,
     limpiarError,
     resetearEstado,
+    actualizarListaLocal,
   } = useUsuarios()
 
   const [searchTerm, setSearchTerm] = useState("")
@@ -38,30 +49,53 @@ const UsersManagementPage: React.FC = () => {
   const [editingUser, setEditingUser] = useState<UsuarioResponse | null>(null)
   const [filtroRol, setFiltroRol] = useState<string>("")
   const [modoBusqueda, setModoBusqueda] = useState<"todos" | "nombre" | "rol">("todos")
-  const [cambiandoEstados, setCambiandoEstados] = useState<Set<number>>(new Set()) // 🔥 AGREGAR ESTADO
+  const [cambiandoEstados, setCambiandoEstados] = useState<Set<number>>(new Set())
 
-  // 🔥 ACTUALIZAR: Incluir propiedad activo (si tu UsuarioResponse no la tiene, asumimos true)
-  const usuariosParaTabla = usuarios.map((usuario) => ({
-    id: usuario.id.toString(),
-    nombre: `${usuario.nombres} ${usuario.apellidos || ""}`.trim(),
-    email: usuario.correo,
-    rol: usuario.roles.length > 0 ? usuario.roles[0] : "Sin rol",
-    roles: usuario.roles,
-    activo: (usuario as any).activo ?? true, // 🔥 Usar la propiedad activo si existe
-    numeroCelular: usuario.numeroCelular,
-    datosCompletos: usuario,
-  }))
+  // Transformar usuarios para tabla - usando type assertion seguro
+  const usuariosParaTabla: UsuarioParaTabla[] = useMemo(() => {
+    return usuarios.map((usuario) => {
+      // Verificar si el usuario tiene la propiedad 'activo'
+      const usuarioConActivo = usuario as UsuarioResponse & { activo?: boolean }
+      const activo = usuarioConActivo.activo ?? true
+      
+      return {
+        id: usuario.id.toString(),
+        nombre: `${usuario.nombres} ${usuario.apellidos || ""}`.trim(),
+        email: usuario.correo,
+        rol: usuario.roles.length > 0 ? usuario.roles[0] : "Sin rol",
+        roles: usuario.roles,
+        activo,
+        numeroCelular: usuario.numeroCelular,
+        datosCompletos: usuario,
+      }
+    })
+  }, [usuarios])
 
-  const filteredUsers = usuariosParaTabla.filter((user) =>
-    searchTerm === ""
-      ? true
-      : user.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+  // Filtrar usuarios - combinando búsqueda por nombre y rol
+  const filteredUsers: UsuarioParaTabla[] = useMemo(() => {
+    let resultado = usuariosParaTabla
+
+    // Filtrar por término de búsqueda si existe
+    if (searchTerm.trim()) {
+      const termino = searchTerm.toLowerCase()
+      resultado = resultado.filter((user) =>
+        user.nombre.toLowerCase().includes(termino) ||
+        user.email.toLowerCase().includes(termino)
+      )
+    }
+
+    // Filtrar por rol si se seleccionó uno
+    if (filtroRol) {
+      resultado = resultado.filter((user) => user.roles.includes(filtroRol))
+    }
+
+    return resultado
+  }, [usuariosParaTabla, searchTerm, filtroRol])
 
   const handleSearchByName = async () => {
     if (searchTerm.trim()) {
       setModoBusqueda("nombre")
+      setFiltroRol("") // Limpiar filtro de rol
       try {
         await buscarUsuariosPorNombre(searchTerm)
       } catch (err) {
@@ -75,6 +109,8 @@ const UsersManagementPage: React.FC = () => {
 
   const handleFilterByRole = async (rol: string) => {
     setFiltroRol(rol)
+    setSearchTerm("") // Limpiar búsqueda por nombre
+    
     if (rol) {
       setModoBusqueda("rol")
       try {
@@ -98,13 +134,11 @@ const UsersManagementPage: React.FC = () => {
     }
   }
 
-  // 🔥 REEMPLAZAR COMPLETAMENTE ESTA FUNCIÓN:
   const handleToggleActivo = async (id: string, activoActual: boolean) => {
     const usuarioId = Number.parseInt(id)
     const nuevoEstado = !activoActual
     const accion = nuevoEstado ? "activar" : "desactivar"
     
-    // Confirmación más detallada
     const confirmMessage = `¿Está seguro de ${accion} este usuario?\n\n${
       nuevoEstado 
         ? "El usuario recuperará acceso al sistema."
@@ -116,25 +150,21 @@ const UsersManagementPage: React.FC = () => {
     }
 
     try {
-      // Marcar que estamos cambiando este usuario
-      setCambiandoEstados(prev => new Set(prev).add(usuarioId))
+      setCambiandoEstados((prev) => new Set(prev).add(usuarioId))
       
-      // Usar el método del hook
       if (activoActual) {
         await desactivarUsuario(usuarioId)
       } else {
         await activarUsuario(usuarioId)
       }
       
-      // Mostrar mensaje de éxito
-      alert(`Usuario ${accion === "activar" ? "activado" : "desactivado"} exitosamente`)
+      alert(`Usuario ${activoActual ? "desactivado" : "activado"} exitosamente`)
       
     } catch (err: any) {
       console.error(`Error al ${accion} usuario:`, err)
       alert(err.message || `Error al ${accion} el usuario`)
     } finally {
-      // Limpiar el estado de cambio
-      setCambiandoEstados(prev => {
+      setCambiandoEstados((prev) => {
         const nuevoSet = new Set(prev)
         nuevoSet.delete(usuarioId)
         return nuevoSet
@@ -164,7 +194,7 @@ const UsersManagementPage: React.FC = () => {
         }
         await actualizarUsuario(editingUser.id, updateData)
       } else {
-        const createData = {
+        const createData: any = {
           nombres: userData.nombres,
           apellidos: userData.apellidos || "",
           correo: userData.correo,
@@ -172,7 +202,8 @@ const UsersManagementPage: React.FC = () => {
           password: userData.password,
           roles: userData.roles,
         }
-        await crearUsuario({ ...createData, activo: true })
+        // Nota: Si el backend espera 'activo', agrégalo aquí
+        await crearUsuario(createData)
       }
       setShowModal(false)
       setEditingUser(null)
@@ -225,7 +256,11 @@ const UsersManagementPage: React.FC = () => {
 
   return (
     <div className="p-4 md:p-6">
-      <UsersHeader onAddNew={handleAddNew} loading={loading} totalUsuarios={pagination.total} />
+      <UsersHeader 
+        onAddNew={handleAddNew} 
+        loading={loading} 
+        totalUsuarios={modoBusqueda === "todos" ? pagination.total : filteredUsers.length} 
+      />
 
       <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="md:col-span-2">
@@ -270,13 +305,15 @@ const UsersManagementPage: React.FC = () => {
       <div className="mb-4 flex flex-wrap items-center justify-between text-sm text-gray-600">
         <div>
           Mostrando <span className="font-semibold">{filteredUsers.length}</span> de{" "}
-          <span className="font-semibold">{pagination.total}</span> usuarios
-          {modoBusqueda === "nombre" && searchTerm && (
+          <span className="font-semibold">
+            {modoBusqueda === "todos" ? pagination.total : filteredUsers.length}
+          </span> usuarios
+          {searchTerm && (
             <span className="ml-2">
               para "<span className="font-semibold">{searchTerm}</span>"
             </span>
           )}
-          {modoBusqueda === "rol" && filtroRol && (
+          {filtroRol && (
             <span className="ml-2">
               con rol <span className="font-semibold">{filtroRol}</span>
             </span>
@@ -305,11 +342,11 @@ const UsersManagementPage: React.FC = () => {
         onEdit={handleEdit}
         onDelete={handleDelete}
         onToggleActivo={handleToggleActivo}
-        cambiandoEstados={cambiandoEstados} // 🔥 PASAR EL ESTADO DE CAMBIOS
+        cambiandoEstados={cambiandoEstados}
         loading={loading}
       />
 
-      {pagination.totalPages > 1 && (
+      {pagination.totalPages > 1 && modoBusqueda === "todos" && (
         <div className="mt-6 flex justify-center">
           <nav className="inline-flex rounded-md shadow">
             <button
@@ -320,7 +357,7 @@ const UsersManagementPage: React.FC = () => {
               &larr; Anterior
             </button>
             {[...Array(Math.min(5, pagination.totalPages))].map((_, i) => {
-              let pageNum
+              let pageNum: number
               if (pagination.totalPages <= 5) {
                 pageNum = i
               } else if (pagination.page < 3) {

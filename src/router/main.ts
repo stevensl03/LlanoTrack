@@ -35,6 +35,7 @@ export const AdminDashboardPage = lazy(() => import("../modules/administrador/pa
 export const UsersManagementPage = lazy(() => import("../modules/administrador/pages/UsersManagementPage"));
 export const EntitiesManagementPage = lazy(() => import("../modules/administrador/pages/EntitiesManagementPage"));
 export const RequestTypesPage = lazy(() => import("../modules/administrador/pages/RequestTypesPage"));
+export const AccountsManagementPage = lazy(() => import("../modules/administrador/pages/CuentaAdminPage"));
 
 // Lazy Imports - Auditor
 export const DashboardPage = lazy(() => import("../modules/auditor/pages/DashboardPage"));

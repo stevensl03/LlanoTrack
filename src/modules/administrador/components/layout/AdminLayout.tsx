@@ -25,6 +25,7 @@ const menuOptions = [
     { id: "dashboard", name: "Panel", path: "/admin/dashboard", icon: "📧" },
     { id: "user", name: "usuarios", path: "/admin/usersConfig", icon: "👥" },
     { id: "entity", name: "Entidades", path: "/admin/entitiesConfig", icon: "🏢" },
+    { id: "account", name: "Cuentas", path: "/admin/accountsConfig", icon: "🔑" },
     { id: "requestType", name: "Solicitud", path: "/admin/requestTypesConfig", icon: "📲" },
 ]
 const footerOptions = [
